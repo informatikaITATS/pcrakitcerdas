@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eff6ff">
+  <meta name="description" content="Game simulasi perakitan PC HTML5 dengan katalog komponen 2015–2026, 10 challenge, cek kompatibilitas, dan kalkulator daya.">
+  <title>Rakit PC Cerdas — ITATS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --ink: #10284d;
+      --muted: #657a97;
+      --blue: #155eef;
+      --blue-deep: #0c3a91;
+      --sky: #eaf2ff;
+      --line: #e2eaf5;
+      --paper: #ffffff;
+      --canvas: #f4f8fd;
+      --green: #0b9b78;
+      --amber: #c87413;
+      --red: #d14d53;
+      --radius: 18px;
+      font-family: "DM Sans", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--canvas);
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--canvas); }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+      outline: 3px solid #92bcff; outline-offset: 2px;
+    }
+    a { color: var(--blue); }
+    .topbar {
+      height: 78px; display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; padding: 0 clamp(18px, 4vw, 56px); background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 13px; color: inherit; text-decoration: none; }
+    .brand-logo { width: 56px; height: 56px; object-fit: contain; border-radius: 10px; }
+    .brand-fallback { display: none; width: 48px; height: 48px; border-radius: 14px; background: #0b397f; color: #fff; font: 700 13px "Space Grotesk", sans-serif; align-items: center; justify-content: center; }
+    .brand-copy strong { display: block; font: 700 16px "Space Grotesk", sans-serif; letter-spacing: -.03em; }
+    .brand-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; color: var(--blue); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .top-pill, .score-pill { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 9px 13px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .score-pill { color: #0b397f; background: #f3f7ff; border-color: #d8e5fb; }
+    .score-pill b { font: 700 17px "Space Grotesk", sans-serif; color: var(--blue); }
+    .hero {
+      position: relative; overflow: hidden; min-height: 202px; padding: 32px clamp(18px, 4vw, 56px) 30px;
+      color: #fff; background: linear-gradient(116deg, #0b397f 0%, #155eef 59%, #4f91ff 100%);
+    }
+    .hero:before, .hero:after { position: absolute; content: ""; border: 1px solid rgba(255,255,255,.15); border-radius: 50%; pointer-events: none; }
+    .hero:before { width: 310px; height: 310px; right: 12%; top: -196px; box-shadow: 0 0 0 30px rgba(255,255,255,.035), 0 0 0 61px rgba(255,255,255,.025); }
+    .hero:after { width: 190px; height: 190px; right: 6%; bottom: -155px; box-shadow: 0 0 0 22px rgba(255,255,255,.04); }
+    .hero-content { position: relative; z-index: 1; max-width: 1240px; margin: auto; display: flex; justify-content: space-between; align-items: center; gap: 30px; }
+    .hero h1 { max-width: 730px; margin: 10px 0 8px; font: 700 clamp(28px, 4vw, 42px)/1.08 "Space Grotesk", sans-serif; letter-spacing: -.045em; }
+    .hero p { max-width: 680px; margin: 0; color: #dce9ff; font-size: 14px; line-height: 1.65; }
+    .hero .eyebrow { color: #b8d2ff; }
+    .hero-stat { flex: 0 0 auto; min-width: 150px; padding: 17px 20px; border: 1px solid rgba(255,255,255,.22); border-radius: 17px; background: rgba(255,255,255,.1); backdrop-filter: blur(8px); text-align: center; }
+    .hero-stat strong { display: block; font: 700 32px "Space Grotesk", sans-serif; }
+    .hero-stat span { display: block; margin-top: 2px; color: #dbe9ff; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .page { max-width: 1500px; margin: 0 auto; padding: 22px clamp(14px, 2.4vw, 34px) 54px; }
+    .workspace { display: grid; grid-template-columns: minmax(210px, 252px) minmax(360px, 1fr) minmax(360px, 440px); align-items: start; gap: 16px; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 3px 12px rgba(22,55,102,.035); }
+    .mission-panel { padding: 17px 13px 13px; position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow: auto; scrollbar-width: thin; }
+    .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin: 0 0 14px; padding: 0 4px; }
+    .panel-heading h2 { margin: 3px 0 0; font: 700 17px "Space Grotesk", sans-serif; letter-spacing: -.025em; }
+    .panel-heading p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .mission-list { display: grid; gap: 7px; }
+    .mission-button { position: relative; display: grid; grid-template-columns: 32px 1fr auto; gap: 9px; align-items: center; width: 100%; min-height: 58px; padding: 8px 9px; text-align: left; border: 1px solid transparent; border-radius: 13px; background: #f8faff; cursor: pointer; transition: .15s ease; }
+    .mission-button:hover { border-color: #cbdcff; background: #f1f6ff; transform: translateY(-1px); }
+    .mission-button.active { border-color: #91b5fa; background: #edf4ff; box-shadow: inset 3px 0 var(--blue); }
+    .mission-number { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: #e9f0fb; color: #4f6c98; font: 700 12px "Space Grotesk", sans-serif; }
+    .mission-button.active .mission-number { background: var(--blue); color: #fff; }
+    .mission-button.completed .mission-number { background: #dcf6ed; color: #08785c; }
+    .mission-name { display: block; font-size: 11px; line-height: 1.3; font-weight: 800; }
+    .mission-class { display: block; margin-top: 3px; font-size: 9px; font-weight: 700; color: var(--muted); }
+    .mission-mark { color: var(--green); }
+    .mission-progress { margin: 13px 5px 2px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 700; }
+    .progress-rail { height: 5px; margin-top: 8px; border-radius: 9px; background: #e7edf6; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, #155eef, #4e94ff); transition: width .25s ease; }
+    .bench { display: grid; gap: 14px; }
+    .client-card { padding: 19px 20px 16px; }
+    .client-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .client-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 999px; color: #174896; background: #edf4ff; font-size: 10px; font-weight: 800; }
+    .client-card h2 { margin: 10px 0 5px; font: 700 22px "Space Grotesk", sans-serif; letter-spacing: -.04em; }
+    .client-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .target-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
+    .target-chip { min-height: 48px; padding: 8px 9px; border: 1px solid #e9eef7; border-radius: 11px; background: #fbfcff; }
+    .target-chip small { display: block; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .target-chip strong { display: block; margin-top: 3px; font: 700 12px "Space Grotesk", sans-serif; }
+    .client-footer { display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #edf1f7; }
+    .reward { color: #826017; font-size: 10px; font-weight: 800; }
+    .action-row { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 37px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 11px; background: #fff; color: var(--ink); font-size: 11px; font-weight: 800; cursor: pointer; transition: .15s ease; }
+    .button:hover { border-color: #abc6f6; background: #f7faff; }
+    .button.primary { border-color: var(--blue); background: var(--blue); color: white; box-shadow: 0 4px 10px rgba(21,94,239,.16); }
+    .button.primary:hover { background: #0d4ed7; }
+    .button.soft { color: #315783; background: #f4f7fc; }
+    .button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+    .builder-card { padding: 16px; }
+    .builder-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 12px; }
+    .builder-title h2 { margin: 0; font: 700 16px "Space Grotesk", sans-serif; }
+    .motherboard-workbench { padding: 12px; border: 1px solid #dce8fb; border-radius: 15px; background: linear-gradient(145deg, #f8fbff, #edf4ff); }
+    .board-topline { display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-bottom: 10px; }
+    .board-top-copy { min-width: 0; }
+    .board-top-copy .eyebrow { font-size: 9px; }
+    .board-model { display: block; overflow: hidden; margin-top: 3px; color: #365579; font: 700 11px "Space Grotesk", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+    .board-target { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; max-width: 56%; min-height: 33px; padding: 6px 9px; border: 1px solid #cdddf4; border-radius: 9px; color: #345578; background: #fff; cursor: pointer; font-size: 9px; font-weight: 800; }
+    .board-target.occupied { border-color: #82d2b7; color: #08785c; background: #f2fcf8; }
+    .board-target.drag-target, .bench-port.drag-target, .board-zone.drag-target { border-color: #155eef; box-shadow: 0 0 0 3px rgba(21,94,239,.2), 0 0 20px rgba(56,127,245,.23); transform: scale(1.025); }
+    .motherboard-canvas { position: relative; width: 100%; aspect-ratio: 1.34; overflow: hidden; border: 1px solid #b8cbe5; border-radius: 13px; background: linear-gradient(145deg, #153d72, #0d2c58 70%, #123762); box-shadow: inset 0 0 0 4px rgba(255,255,255,.09), 0 7px 18px rgba(23,54,98,.13); }
+    .motherboard-canvas.powered { border-color: #50cda5; box-shadow: inset 0 0 0 4px rgba(255,255,255,.1), 0 0 0 3px rgba(50,201,155,.15), 0 8px 24px rgba(19,142,110,.2); }
+    .board-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .board-zone { position: absolute; z-index: 2; display: flex; align-items: center; gap: 5px; min-width: 0; padding: 5px 6px; overflow: hidden; border: 1px solid rgba(175,207,255,.9); border-radius: 8px; color: #173963; background: rgba(245,249,255,.94); box-shadow: 0 2px 8px rgba(2,20,48,.24); cursor: pointer; text-align: left; transition: .14s ease; }
+    .board-zone:hover { background: #fff; transform: translateY(-1px); }
+    .board-zone.occupied { border-color: #73d4b1; background: rgba(244,255,250,.97); }
+    .board-zone .zone-mark { display: grid; flex: 0 0 auto; place-items: center; width: 23px; height: 23px; border-radius: 6px; color: #1555c2; background: #e5efff; font-size: 8px; font-weight: 900; }
+    .board-zone.occupied .zone-mark { color: #08785c; background: #dff8ed; }
+    .zone-copy { display: block; min-width: 0; }
+    .zone-copy small { display: block; color: #7086a2; font-size: 7px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .zone-copy strong { display: -webkit-box; overflow: hidden; margin-top: 2px; font: 700 9px/1.15 "DM Sans", sans-serif; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .zone-power { align-self: flex-start; margin-left: auto; color: #315b91; font: 700 8px "Space Grotesk", sans-serif; white-space: nowrap; }
+    .zone-cpu { left: 16%; top: 15%; width: 31%; height: 32%; }
+    .zone-ram { left: 53%; top: 13%; width: 20%; height: 42%; }
+    .zone-ram .zone-mark { width: 19px; height: 19px; }
+    .zone-storage { left: 13%; top: 57%; width: 33%; height: 14%; }
+    .zone-gpu { left: 16%; top: 73%; width: 68%; height: 12%; }
+    .zone-gpu .zone-copy strong { -webkit-line-clamp: 1; }
+    .board-dock { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
+    .bench-port { display: flex; align-items: center; gap: 6px; min-width: 0; min-height: 39px; padding: 6px 8px; border: 1px dashed #b9cbe3; border-radius: 9px; color: #496887; background: #fff; cursor: pointer; text-align: left; transition: .14s ease; }
+    .bench-port.occupied { border-style: solid; border-color: #8bd6bd; color: #08785c; background: #f5fcf9; }
+    .bench-port > span:last-child { min-width: 0; }
+    .bench-port small { display: block; color: #788ba3; font-size: 7px; font-weight: 900; text-transform: uppercase; }
+    .bench-port strong { display: block; overflow: hidden; margin-top: 2px; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .board-hint { margin: 8px 1px 0; color: #6d8098; font-size: 9px; line-height: 1.45; }
+    .build-visual { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: center; min-height: 0; padding: 12px 14px; overflow: hidden; border: 1px solid #dce8fb; border-radius: 15px; background: linear-gradient(130deg, #f2f7ff, #e5efff); }
+    .case-art { position: relative; width: 81px; height: 117px; margin: auto; border: 5px solid #183c71; border-radius: 12px; background: linear-gradient(145deg, #173a70, #10274c); box-shadow: 9px 9px 0 #ccdcf5; }
+    .case-art:before { content: ""; position: absolute; inset: 7px 7px 7px 22px; border: 1px solid rgba(182,214,255,.42); border-radius: 5px; background: linear-gradient(140deg, rgba(57,131,247,.27), rgba(12,25,54,.64)); }
+    .case-window { position: absolute; z-index: 1; right: 12px; top: 19px; display: flex; align-items: center; justify-content: center; width: 39px; height: 39px; border-radius: 50%; border: 3px solid #89b8ff; color: #fff; box-shadow: 0 0 15px rgba(57,142,255,.5), inset 0 0 12px rgba(57,142,255,.24); transition: .2s ease; }
+    .case-window.running { border-color: #7de4c4; color: #aaffdf; box-shadow: 0 0 18px rgba(51,224,167,.55), inset 0 0 12px rgba(51,224,167,.3); }
+    .case-slot { position: absolute; z-index: 2; bottom: 13px; left: 9px; width: 8px; height: 4px; background: #6188bf; border-radius: 3px; }
+    .case-led { position: absolute; z-index: 2; left: 9px; top: 15px; width: 4px; height: 4px; border-radius: 50%; background: #62b4ff; box-shadow: 0 0 8px #65b9ff; }
+    .visual-copy strong { display: block; font: 700 13px "Space Grotesk", sans-serif; }
+    .visual-copy p { margin: 5px 0 11px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .mini-stat { display: flex; align-items: baseline; gap: 5px; }
+    .mini-stat b { color: #174896; font: 700 22px "Space Grotesk", sans-serif; }
+    .mini-stat span { color: var(--muted); font-size: 10px; font-weight: 700; }
+    .meter { margin-top: 8px; }
+    .meter-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+    .meter-track { height: 7px; overflow: hidden; border-radius: 10px; background: #dce7f7; }
+    .meter-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #138fba, #1b66f1); transition: width .22s ease; }
+    .meter-fill.over { background: linear-gradient(90deg, #efaa42, #d95252); }
+    .slot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .slot { position: relative; display: flex; align-items: center; gap: 9px; min-width: 0; min-height: 55px; padding: 8px; border: 1px dashed #c9d7eb; border-radius: 12px; background: #fbfdff; cursor: pointer; text-align: left; transition: .15s ease; }
+    .slot:hover { border-color: #7da7ec; background: #f4f8ff; }
+    .slot.filled { border-style: solid; border-color: #cfdef4; background: #fff; }
+    .slot.selected { border-color: #578cf0; box-shadow: 0 0 0 2px rgba(21,94,239,.08); }
+    .slot-icon, .part-icon { display: grid; flex: 0 0 auto; place-items: center; width: 33px; height: 33px; border-radius: 10px; color: #1555c2; background: #edf4ff; }
+    .slot-copy { min-width: 0; }
+    .slot-copy small { display: block; color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    .slot-copy strong { display: block; overflow: hidden; margin-top: 3px; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-watt { margin-left: auto; color: #38597f; font: 700 10px "Space Grotesk", sans-serif; white-space: nowrap; }
+    .slot-open { display: flex; flex: 1; align-items: center; gap: 9px; min-width: 0; min-height: 38px; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; }
+    .slot-open:hover { background: transparent; }
+    .slot-remove { position: absolute; top: 3px; right: 4px; display: grid; place-items: center; width: 17px; height: 17px; padding: 0; border: 0; border-radius: 50%; background: #f0f4f9; color: #70829b; cursor: pointer; opacity: 0; }
+    .slot.filled:hover .slot-remove, .slot-remove:focus-visible { opacity: 1; }
+    .checks { display: grid; gap: 6px; margin: 12px 1px 0; }
+    .check-row { display: flex; align-items: flex-start; gap: 7px; color: #61758f; font-size: 10px; line-height: 1.4; }
+    .check-row.good { color: #08785c; }
+    .check-row.bad { color: #b64a4d; }
+    .check-row.warn { color: #a16110; }
+    .check-icon { flex: 0 0 auto; margin-top: 1px; }
+    .builder-actions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; padding-top: 11px; border-top: 1px solid #edf1f7; }
+    .feedback { display: none; margin-top: 10px; padding: 10px 12px; border: 1px solid #d9eee7; border-radius: 11px; color: #116b54; background: #f0fbf7; font-size: 11px; font-weight: 700; line-height: 1.5; }
+    .feedback.show { display: block; }
+    .catalog-panel { min-height: 700px; overflow: hidden; }
+    .catalog-head { padding: 15px 15px 12px; border-bottom: 1px solid var(--line); }
+    .catalog-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .catalog-title h2 { margin: 0; font: 700 16px "Space Grotesk", sans-serif; }
+    .part-count { color: var(--muted); font-size: 10px; font-weight: 700; }
+    .category-tabs { display: flex; gap: 6px; overflow-x: auto; margin: 12px -2px 11px; padding: 2px; scrollbar-width: thin; }
+    .category-tab { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; min-height: 31px; padding: 6px 9px; border: 1px solid #e6edf7; border-radius: 9px; background: #fff; color: #61758f; font-size: 10px; font-weight: 800; cursor: pointer; }
+    .category-tab:hover { background: #f6f9ff; }
+    .category-tab.active { border-color: #155eef; background: #155eef; color: #fff; }
+    .filters { display: grid; grid-template-columns: minmax(110px, 1fr) 90px 92px; gap: 7px; }
+    .field { width: 100%; min-width: 0; height: 34px; padding: 0 9px; border: 1px solid #e2eaf5; border-radius: 9px; background-color: #fff; color: #34506e; font-size: 10px; font-weight: 700; }
+    .search-wrap { position: relative; }
+    .search-wrap .field { padding-left: 30px; }
+    .search-icon { position: absolute; left: 9px; top: 9px; color: #879ab3; pointer-events: none; }
+    .library { display: grid; gap: 8px; max-height: 702px; overflow-y: auto; padding: 11px; scrollbar-width: thin; }
+    .part-card { padding: 11px; border: 1px solid #e7edf6; border-radius: 13px; background: #fff; cursor: grab; transition: border .15s ease, box-shadow .15s ease; }
+    .part-card:hover { border-color: #bed1f1; box-shadow: 0 4px 12px rgba(29,72,136,.055); }
+    .part-card:active { cursor: grabbing; }
+    .part-card.chosen { border-color: #91b5fa; background: #f8fbff; }
+    .part-main { display: flex; gap: 9px; align-items: flex-start; }
+    .part-icon { width: 37px; height: 37px; }
+    .part-intro { flex: 1; min-width: 0; }
+    .part-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 7px; color: var(--muted); font-size: 9px; font-weight: 800; }
+    .year-tag { padding: 3px 6px; border-radius: 6px; color: #355a8e; background: #eef4fd; font-size: 9px; }
+    .part-intro h3 { margin: 4px 0 3px; font: 700 12px/1.32 "Space Grotesk", sans-serif; letter-spacing: -.015em; }
+    .part-sub { color: #6f829c; font-size: 9px; line-height: 1.4; }
+    .part-details { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+    .spec-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; border: 1px solid #e8edf5; border-radius: 6px; color: #526a88; background: #fbfcfe; font-size: 9px; font-weight: 700; }
+    .part-bottom { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-top: 9px; padding-top: 8px; border-top: 1px solid #f0f3f8; }
+    .power-tag { display: flex; align-items: baseline; gap: 4px; color: #627690; font-size: 9px; font-weight: 700; }
+    .power-tag b { color: #174896; font: 700 13px "Space Grotesk", sans-serif; }
+    .part-add { min-height: 29px; padding: 5px 9px; border-radius: 8px; font-size: 10px; }
+    .empty-state { padding: 26px 12px; color: var(--muted); text-align: center; font-size: 11px; line-height: 1.6; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 13px; color: var(--muted); font-size: 9px; }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; background: #155eef; }
+    .legend-dot.draw { background: #0b9b78; }
+    .legend-dot.cap { background: #b3821d; }
+    .info-box { margin-top: 14px; padding: 12px 13px; border: 1px solid #dce8f8; border-radius: 13px; background: #f7faff; }
+    .info-box strong { display: flex; align-items: center; gap: 7px; font-size: 10px; }
+    .info-box p { margin: 5px 0 0; color: #657a97; font-size: 9px; line-height: 1.55; }
+    .source-strip { display: flex; flex-wrap: wrap; gap: 7px 13px; margin-top: 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 13px; background: #fff; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .source-strip strong { color: #385574; }
+    .source-strip a { text-decoration: none; font-weight: 700; }
+    .source-strip a:hover { text-decoration: underline; }
+    .footer { margin-top: 13px; color: #8292a7; font-size: 9px; line-height: 1.65; text-align: center; }
+    .toast { position: fixed; z-index: 10; left: 50%; bottom: 22px; max-width: min(440px, calc(100vw - 28px)); padding: 12px 16px; transform: translate(-50%, 18px); border: 1px solid #d5e2f6; border-radius: 13px; background: #fff; box-shadow: 0 8px 28px rgba(23,49,92,.15); color: #23446e; opacity: 0; pointer-events: none; font-size: 11px; font-weight: 700; line-height: 1.5; transition: .22s ease; }
+    .toast.visible { transform: translate(-50%, 0); opacity: 1; }
+    .icon-fallback { font-size: 9px; font-weight: 800; letter-spacing: -.04em; }
+    .icon-fallback[hidden] { display: none; }
+    svg[data-lucide] { width: 16px; height: 16px; stroke-width: 1.8; }
+    .part-icon svg[data-lucide] { width: 18px; height: 18px; }
+    .slot-icon svg[data-lucide] { width: 17px; height: 17px; }
+    @media (max-width: 1150px) {
+      .workspace { grid-template-columns: 220px minmax(350px, 1fr); }
+      .catalog-panel { grid-column: 2; min-height: 0; }
+      .library { max-height: 540px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mission-panel { grid-row: span 2; }
+    }
+    @media (max-width: 760px) {
+      .topbar { height: 68px; padding-inline: 14px; }
+      .brand-logo { width: 46px; height: 46px; }
+      .brand-copy strong { font-size: 14px; }
+      .brand-copy small { font-size: 9px; }
+      .top-pill { display: none; }
+      .hero { min-height: 0; padding: 25px 17px; }
+      .hero-content { align-items: flex-start; }
+      .hero-stat { min-width: 100px; padding: 13px 12px; }
+      .hero-stat strong { font-size: 25px; }
+      .hero-stat span { font-size: 9px; }
+      .hero p { font-size: 12px; }
+      .page { padding: 13px 10px 38px; }
+      .workspace { grid-template-columns: 1fr; gap: 11px; }
+      .mission-panel { position: static; grid-row: auto; max-height: none; }
+      .mission-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mission-button { min-height: 52px; grid-template-columns: 27px 1fr auto; gap: 7px; padding: 7px; }
+      .mission-number { width: 26px; height: 26px; border-radius: 8px; }
+      .mission-name { font-size: 10px; }
+      .catalog-panel { grid-column: auto; }
+      .library { max-height: none; grid-template-columns: 1fr; }
+      .target-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 450px) {
+      .hero-content { display: block; }
+      .hero-stat { display: none; }
+      .score-pill { padding: 8px 10px; }
+      .score-pill b { font-size: 15px; }
+      .client-card { padding: 15px; }
+      .client-card h2 { font-size: 20px; }
+      .target-chip strong { font-size: 11px; }
+      .filters { grid-template-columns: minmax(90px, 1fr) 78px 78px; gap: 5px; }
+      .field { padding-inline: 6px; font-size: 9px; }
+      .search-wrap .field { padding-left: 27px; }
+      .motherboard-workbench { padding: 9px; }
+      .board-dock { gap: 4px; }
+      .bench-port { gap: 4px; padding: 5px; }
+      .bench-port svg[data-lucide] { width: 13px; height: 13px; }
+      .build-visual { gap: 8px; padding: 10px; }
+      .slot-grid { gap: 6px; }
+      .slot { gap: 6px; padding: 6px; }
+      .slot-open { gap: 6px; }
+      .slot-icon { width: 29px; height: 29px; }
+      .slot-copy strong { font-size: 9px; }
+      .slot-watt { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="https://itats.ac.id/" target="_blank" rel="noreferrer" aria-label="Situs ITATS">
+      <img class="brand-logo" src="https://itats.ac.id/wp-content/uploads/2024/11/logo-itats-biru.png" alt="Logo ITATS" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <span class="brand-fallback" aria-hidden="true">ITATS</span>
+      <span class="brand-copy"><strong>Rakit PC Cerdas</strong><small>Simulasi perakitan komputer</small></span>
+    </a>
+    <div class="top-actions">
+      <span class="top-pill"><i data-lucide="calendar"></i> Katalog 2015–2026</span>
+      <span class="score-pill"><i data-lucide="trophy"></i> Skor <b id="scoreValue">0</b></span>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="hero-content">
+      <div>
+        <span class="eyebrow"><i data-lucide="sparkles"></i> Lab rakit PC interaktif · ITATS</span>
+        <h1>Rakit PC. Penuhi misi.<br>Hitung dayanya.</h1>
+        <p>Pilih komponen yang cocok, penuhi kebutuhan klien, dan pastikan catu daya sanggup menopang seluruh rakitan.</p>
+      </div>
+      <div class="hero-stat"><strong id="progressHero">0/10</strong><span>Misi selesai</span></div>
+    </div>
+  </section>
+  <main class="page">
+    <div class="workspace">
+      <aside class="panel mission-panel">
+        <div class="panel-heading">
+          <div><span class="eyebrow"><i data-lucide="target"></i> pilih klien</span><h2>Daftar challenge</h2><p>10 kebutuhan komputer yang berbeda.</p></div>
+        </div>
+        <div id="missionList" class="mission-list" aria-label="Daftar challenge"></div>
+        <div class="mission-progress"><span id="progressText">0 dari 10 challenge rampung</span><div class="progress-rail"><div id="progressBar" class="progress-bar"></div></div></div>
+      </aside>
+      <section class="bench" aria-label="Meja perakitan">
+        <section id="clientCard" class="panel client-card" aria-live="polite"></section>
+        <section class="panel builder-card">
+          <div class="builder-title">
+            <h2><i data-lucide="layout-dashboard"></i> Meja rakit</h2>
+            <button id="clearBuild" class="button soft" type="button"><i data-lucide="rotate-ccw"></i> Kosongkan</button>
+          </div>
+          <div class="motherboard-workbench" id="boardWorkbench">
+            <div class="board-topline">
+              <div class="board-top-copy"><span class="eyebrow"><i data-lucide="circuit-board"></i> Socket · slot · konektor</span><strong id="boardModel" class="board-model">Papan induk belum dipasang</strong></div>
+              <button type="button" class="board-target" data-slot="board"><i data-lucide="plus"></i> Pilih motherboard</button>
+            </div>
+            <div id="motherboardCanvas" class="motherboard-canvas" aria-label="Model motherboard interaktif">
+              <svg class="board-art" viewBox="0 0 600 440" role="img" aria-label="Ilustrasi papan induk ATX dari atas">
+                <defs>
+                  <linearGradient id="pcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22548b"/><stop offset=".54" stop-color="#174174"/><stop offset="1" stop-color="#10325e"/></linearGradient>
+                  <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dbeaff"/><stop offset="1" stop-color="#91b6e6"/></linearGradient>
+                  <pattern id="pins" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#d5b868" opacity=".7"/></pattern>
+                </defs>
+                <rect x="22" y="18" width="556" height="404" rx="20" fill="url(#pcb)" stroke="#87a9d6" stroke-width="3"/>
+                <rect x="31" y="27" width="538" height="386" rx="15" fill="none" stroke="#83b7ee" stroke-opacity=".25"/>
+                <g fill="#c8d9ef" stroke="#5278a8" stroke-width="3">
+                  <circle cx="48" cy="45" r="8"/><circle cx="550" cy="45" r="8"/><circle cx="48" cy="394" r="8"/><circle cx="550" cy="394" r="8"/><circle cx="298" cy="394" r="8"/>
+                </g>
+                <g fill="none" stroke="#6fb0ed" stroke-width="3" stroke-opacity=".34">
+                  <path d="M265 116h37v-45h28"/><path d="M265 153h40v83h-47"/><path d="M283 191h77v39h40"/>
+                  <path d="M334 107h46v102h39"/><path d="M120 200v38h-21v22"/><path d="M180 202v34"/>
+                  <path d="M106 283h32v-25h32"/><path d="M280 270h39v-25"/><path d="M307 316h47v-31h37"/>
+                  <path d="M456 277h43v-32"/><path d="M460 323h47v42"/><path d="M390 358h80"/>
+                  <path d="M236 331v36h72"/><path d="M112 311h-27v-46"/>
+                </g>
+                <g fill="#b9cce5" opacity=".93">
+                  <rect x="85" y="40" width="42" height="23" rx="4"/><rect x="134" y="40" width="42" height="23" rx="4"/><rect x="183" y="40" width="42" height="23" rx="4"/><rect x="232" y="40" width="35" height="23" rx="4"/>
+                  <rect x="76" y="74" width="18" height="17" rx="4"/><rect x="76" y="98" width="18" height="17" rx="4"/><rect x="76" y="122" width="18" height="17" rx="4"/><rect x="76" y="146" width="18" height="17" rx="4"/>
+                </g>
+                <rect x="104" y="69" width="169" height="138" rx="9" fill="#102c51" stroke="#82a7d4" stroke-width="5"/>
+                <rect x="115" y="80" width="147" height="116" rx="5" fill="url(#metal)" stroke="#eaf4ff" stroke-width="2"/>
+                <rect x="123" y="88" width="131" height="100" rx="3" fill="url(#pins)" stroke="#547eae" stroke-width="2"/>
+                <rect x="151" y="111" width="75" height="54" rx="4" fill="#174078" stroke="#aac7ed" stroke-width="3"/>
+                <text x="188" y="135" fill="#dceaff" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="middle">CPU SOCKET</text>
+                <g fill="#6b91bf" stroke="#c9def8" stroke-width="2">
+                  <rect x="305" y="53" width="20" height="192" rx="5"/><rect x="332" y="53" width="20" height="192" rx="5"/>
+                  <rect x="359" y="53" width="20" height="192" rx="5"/><rect x="386" y="53" width="20" height="192" rx="5"/>
+                </g>
+                <g fill="#e2c77b">
+                  <rect x="310" y="57" width="3" height="183" rx="1"/><rect x="337" y="57" width="3" height="183" rx="1"/><rect x="364" y="57" width="3" height="183" rx="1"/><rect x="391" y="57" width="3" height="183" rx="1"/>
+                </g>
+                <rect x="92" y="250" width="196" height="28" rx="6" fill="#153254" stroke="#8fb4df" stroke-width="3"/>
+                <rect x="102" y="260" width="164" height="7" rx="3" fill="#d4b867"/>
+                <circle cx="278" cy="264" r="5" fill="#e4d28b"/>
+                <rect x="103" y="308" width="367" height="20" rx="5" fill="#182d48" stroke="#e0c46d" stroke-width="4"/>
+                <rect x="115" y="315" width="319" height="5" rx="2" fill="#d6bc73"/>
+                <rect x="105" y="342" width="344" height="13" rx="4" fill="#9bb1cb" opacity=".75"/>
+                <rect x="403" y="259" width="79" height="72" rx="12" fill="#224f80" stroke="#83a9d5" stroke-width="4"/>
+                <text x="442" y="289" fill="#dceaff" font-family="sans-serif" font-size="12" font-weight="700" text-anchor="middle">ITATS</text>
+                <text x="442" y="307" fill="#adcaef" font-family="sans-serif" font-size="8" text-anchor="middle">CHIPSET</text>
+                <rect x="497" y="139" width="40" height="128" rx="7" fill="#0c294a" stroke="#8eb0d8" stroke-width="3"/>
+                <g fill="#d8e6f7"><rect x="505" y="147" width="24" height="9" rx="2"/><rect x="505" y="163" width="24" height="9" rx="2"/><rect x="505" y="179" width="24" height="9" rx="2"/><rect x="505" y="195" width="24" height="9" rx="2"/><rect x="505" y="211" width="24" height="9" rx="2"/><rect x="505" y="227" width="24" height="9" rx="2"/><rect x="505" y="243" width="24" height="9" rx="2"/></g>
+                <g fill="#9cb7d9" stroke="#e4efff" stroke-width="2">
+                  <circle cx="282" cy="54" r="10"/><circle cx="284" cy="81" r="8"/><circle cx="284" cy="105" r="8"/><circle cx="284" cy="131" r="8"/><circle cx="284" cy="157" r="8"/>
+                </g>
+                <g fill="#d9b75c" opacity=".9"><circle cx="93" cy="226" r="4"/><circle cx="288" cy="286" r="4"/><circle cx="479" cy="348" r="4"/><circle cx="83" cy="361" r="4"/></g>
+              </svg>
+              <button type="button" class="board-zone zone-cpu" data-slot="cpu"><span class="zone-mark">CPU</span><span class="zone-copy"><small>Socket prosesor</small><strong data-zone-name="cpu">Masukkan prosesor</strong></span><span class="zone-power" data-zone-power="cpu"></span></button>
+              <button type="button" class="board-zone zone-ram" data-slot="ram"><span class="zone-mark">RAM</span><span class="zone-copy"><small>Slot DIMM</small><strong data-zone-name="ram">Pasang memori</strong></span><span class="zone-power" data-zone-power="ram"></span></button>
+              <button type="button" class="board-zone zone-storage" data-slot="storage"><span class="zone-mark">M.2</span><span class="zone-copy"><small>NVMe</small><strong data-zone-name="storage">Pasang SSD</strong></span></button>
+              <button type="button" class="board-zone zone-gpu" data-slot="gpu"><span class="zone-mark">PCIe</span><span class="zone-copy"><small>Slot kartu grafis</small><strong data-zone-name="gpu">Masukkan VGA / pilih iGPU</strong></span><span class="zone-power" data-zone-power="gpu"></span></button>
+            </div>
+            <div class="board-dock">
+              <button type="button" class="bench-port" data-slot="psu"><i data-lucide="zap"></i><span><small>Konektor 24-pin / PSU</small><strong data-zone-name="psu">Sambungkan daya</strong></span></button>
+              <button type="button" class="bench-port" data-slot="keyboard"><i data-lucide="keyboard"></i><span><small>Periferal USB</small><strong data-zone-name="keyboard">Hubungkan keyboard</strong></span></button>
+              <button type="button" class="bench-port" data-slot="mouse"><i data-lucide="mouse"></i><span><small>Periferal USB</small><strong data-zone-name="mouse">Hubungkan mouse</strong></span></button>
+            </div>
+            <p class="board-hint">Klik area slot, atau seret komponen dari katalog ke soket yang sesuai. Keyboard, mouse, dan PSU terhubung melalui port di bawah papan.</p>
+          </div>
+          <div class="build-visual">
+            <div class="visual-copy"><strong>Estimasi kebutuhan daya</strong><p>Daya sistem berdasarkan komponen terpasang. PSU dicatat sebagai kapasitas, bukan beban.</p><div class="mini-stat"><b id="totalWatt">0</b><span>W perkiraan</span></div><div class="meter"><div class="meter-head"><span>Kapasitas terpakai PSU</span><span id="capacityLabel">Belum dipilih</span></div><div class="meter-track"><div id="capacityMeter" class="meter-fill"></div></div></div></div>
+          </div>
+          <div id="slotGrid" class="slot-grid" aria-label="Slot komponen"></div>
+          <div id="checks" class="checks" aria-live="polite"></div>
+          <div class="builder-actions">
+            <button id="checkBuild" class="button primary" type="button"><i data-lucide="badge-check"></i> Periksa rakitan</button>
+            <button id="nextMission" class="button" type="button"><i data-lucide="arrow-right"></i> Misi berikutnya</button>
+          </div>
+          <div id="feedback" class="feedback" role="status"></div>
+        </section>
+      </section>
+      <section class="panel catalog-panel" aria-label="Katalog komponen">
+        <div class="catalog-head">
+          <div class="catalog-title"><h2><i data-lucide="package"></i> Katalog komponen</h2><span id="partCount" class="part-count"></span></div>
+          <div id="categoryTabs" class="category-tabs" role="tablist" aria-label="Kategori komponen"></div>
+          <div class="filters">
+            <div class="search-wrap"><i class="search-icon" data-lucide="search"></i><input id="searchFilter" class="field" type="search" placeholder="Cari model / tipe" aria-label="Cari komponen"></div>
+            <select id="yearFilter" class="field" aria-label="Filter tahun"><option value="all">Semua thn</option></select>
+            <select id="brandFilter" class="field" aria-label="Filter merek"><option value="all">Semua merek</option></select>
+          </div>
+        </div>
+        <div id="library" class="library" role="tabpanel"></div>
+      </section>
+    </div>
+    <div class="legend">
+      <span><i class="legend-dot"></i> Slot komponen</span>
+      <span><i class="legend-dot draw"></i> Beban yang ikut dijumlahkan</span>
+      <span><i class="legend-dot cap"></i> Kapasitas PSU</span>
+    </div>
+    <aside class="info-box">
+      <strong><i data-lucide="info"></i> Catatan spesifikasi &amp; daya</strong>
+      <p>Katalog ini berisi pilihan model representatif untuk belajar lintas generasi, bukan seluruh SKU. Daya CPU memakai TDP/base power; GPU memakai daya papan tipikal; RAM, SSD, papan induk, keyboard, dan mouse memakai estimasi. Angka dapat berbeda antar model/kondisi. Sistem membutuhkan ruang cadangan PSU 25%; cocokkan lagi SKU persis, revisi BIOS, dukungan RAM/EXPO/XMP, dan panduan produsen sebelum merakit PC nyata.</p>
+    </aside>
+    <div class="source-strip" aria-label="Sumber data dan atribusi aset">
+      <strong>Sumber &amp; aset:</strong>
+      <a href="https://itats.ac.id/profil-itats/" target="_blank" rel="noreferrer">Logo ITATS · situs resmi</a>
+      <a href="https://www.intel.com/content/www/us/en/support/articles/000058971/processors/intel-core-processors.html" target="_blank" rel="noreferrer">Generasi &amp; prosesor Intel</a>
+      <a href="https://newsroom.intel.com/client-computing/intel-announces-new-intel-core-ultra-200s-plus-series-desktop-processors" target="_blank" rel="noreferrer">Intel Core Ultra 200S Plus (2026)</a>
+      <a href="https://www.amd.com/en/technologies/zen-core.html" target="_blank" rel="noreferrer">Arsitektur Zen &amp; Ryzen</a>
+      <a href="https://www.amd.com/en/products/processors/chipsets.html" target="_blank" rel="noreferrer">Chipset AMD</a>
+      <a href="https://www.nvidia.com/en-ph/geforce/graphics-cards/50-series/rtx-5090/" target="_blank" rel="noreferrer">Spesifikasi GPU GeForce</a>
+      <a href="https://www.amd.com/en/products/graphics/desktops/radeon.html" target="_blank" rel="noreferrer">Seri Radeon</a>
+      <a href="https://lucide.dev/license" target="_blank" rel="noreferrer">Ikon Lucide · ISC/MIT</a>
+      <a href="https://developers.google.com/fonts" target="_blank" rel="noreferrer">Font Google Fonts · lisensi open source</a>
+    </div>
+    <footer class="footer">Game edukasi HTML5. Ikon Lucide dan logo resmi ITATS dimuat dari internet; ilustrasi papan/rakitan dibuat langsung dengan HTML dan CSS. Filter, kalkulator daya, kompatibilitas, dan challenge bekerja di browser tanpa instalasi.</footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script>
+    "use strict";
+    var categories = [
+      { id: "board", label: "Motherboard", short: "Motherboard", icon: "cpu", glyph: "MB" },
+      { id: "cpu", label: "Prosesor", short: "Prosesor", icon: "cpu", glyph: "CPU" },
+      { id: "ram", label: "RAM", short: "RAM", icon: "memory-stick", glyph: "RAM" },
+      { id: "storage", label: "NVMe", short: "NVMe", icon: "hard-drive", glyph: "SSD" },
+      { id: "gpu", label: "VGA / GPU", short: "VGA / GPU", icon: "monitor", glyph: "GPU" },
+      { id: "psu", label: "PSU", short: "PSU", icon: "zap", glyph: "PSU" },
+      { id: "keyboard", label: "Keyboard", short: "Keyboard", icon: "keyboard", glyph: "KEY" },
+      { id: "mouse", label: "Mouse", short: "Mouse", icon: "mouse", glyph: "M" }
+    ];
+    var catalog = {
+      cpu: [
+        { id:"cpu-i5-5675c", brand:"Intel", name:"Core i5-5675C", year:2015, family:"Core i5 · gen 5 · Broadwell", socket:"LGA1150", platform:"i5", ram:"DDR3", power:65, boostPower:84, tier:2, igpu:true, meta:"4 core / 4 thread · Iris Pro 6200", sub:"Prosesor desktop Intel, era DDR3/DDR3L." },
+        { id:"cpu-i5-6500", brand:"Intel", name:"Core i5-6500", year:2015, family:"Core i5 · gen 6 · Skylake", socket:"LGA1151", platform:"i6", ram:"DDR4", power:65, boostPower:65, tier:2, igpu:true, meta:"4 core / 4 thread · HD Graphics 530", sub:"Generasi awal platform DDR4 desktop mainstream." },
+        { id:"cpu-i3-9100", brand:"Intel", name:"Core i3-9100", year:2019, family:"Core i3 · gen 9 · Coffee Lake Refresh", socket:"LGA1151", platform:"i9", ram:"DDR4", power:65, boostPower:65, tier:2, igpu:true, meta:"4 core / 4 thread · UHD Graphics 630", sub:"Contoh CPU kelas entry-level Core generasi ke-9." },
+        { id:"cpu-i5-7500", brand:"Intel", name:"Core i5-7500", year:2017, family:"Core i5 · gen 7 · Kaby Lake", socket:"LGA1151", platform:"i7", ram:"DDR4", power:65, boostPower:65, tier:2, igpu:true, meta:"4 core / 4 thread · HD Graphics 630", sub:"Core generasi ke-7; platform chipset seri 200." },
+        { id:"cpu-i5-8400", brand:"Intel", name:"Core i5-8400", year:2017, family:"Core i5 · gen 8 · Coffee Lake", socket:"LGA1151", platform:"i8", ram:"DDR4", power:65, boostPower:78, tier:3, igpu:true, meta:"6 core / 6 thread · UHD Graphics 630", sub:"Core generasi ke-8 memakai chipset seri 300." },
+        { id:"cpu-i7-9700k", brand:"Intel", name:"Core i7-9700K", year:2018, family:"Core i7 · gen 9 · Coffee Lake Refresh", socket:"LGA1151", platform:"i9", ram:"DDR4", power:95, boostPower:125, tier:4, igpu:true, meta:"8 core / 8 thread · UHD Graphics 630", sub:"Salah satu CPU gaming populer di platform DDR4." },
+        { id:"cpu-i5-10400", brand:"Intel", name:"Core i5-10400", year:2020, family:"Core i5 · gen 10 · Comet Lake", socket:"LGA1200", platform:"i10", ram:"DDR4", power:65, boostPower:134, tier:3, igpu:true, meta:"6 core / 12 thread · UHD Graphics 630", sub:"Core generasi ke-10; chipset seri 400." },
+        { id:"cpu-i5-11400", brand:"Intel", name:"Core i5-11400", year:2021, family:"Core i5 · gen 11 · Rocket Lake", socket:"LGA1200", platform:"i11", ram:"DDR4", power:65, boostPower:154, tier:3, igpu:true, meta:"6 core / 12 thread · UHD Graphics 730", sub:"Core generasi ke-11; chipset seri 500." },
+        { id:"cpu-i3-12100", brand:"Intel", name:"Core i3-12100", year:2022, family:"Core i3 · gen 12 · Alder Lake", socket:"LGA1700", platform:"i12", ram:"DDR4", power:60, boostPower:89, tier:3, igpu:true, meta:"4 core / 8 thread · UHD Graphics 730", sub:"Opsi hemat modern dengan grafis terintegrasi." },
+        { id:"cpu-i5-12400", brand:"Intel", name:"Core i5-12400", year:2022, family:"Core i5 · gen 12 · Alder Lake", socket:"LGA1700", platform:"i12", ram:"DDR4", power:65, boostPower:117, tier:4, igpu:true, meta:"6 core / 12 thread · UHD Graphics 730", sub:"Arsitektur hybrid diperkenalkan di generasi ke-12." },
+        { id:"cpu-i5-13400", brand:"Intel", name:"Core i5-13400", year:2023, family:"Core i5 · gen 13 · Raptor Lake", socket:"LGA1700", platform:"i13", ram:"DDR4", power:65, boostPower:148, tier:4, igpu:true, meta:"10 core / 16 thread · UHD Graphics 730", sub:"Model ini tersedia pula di motherboard DDR5 yang sesuai." },
+        { id:"cpu-i5-14600k", brand:"Intel", name:"Core i5-14600K", year:2023, family:"Core i5 · gen 14 · Raptor Lake Refresh", socket:"LGA1700", platform:"i14", ram:"DDR4", power:125, boostPower:181, tier:5, igpu:true, meta:"14 core / 20 thread · UHD Graphics 770", sub:"Butuh pendingin memadai; periksa BIOS motherboard." },
+        { id:"cpu-u7-265k", brand:"Intel", name:"Core Ultra 7 265K", year:2024, family:"Core Ultra 7 · seri 2 · Arrow Lake", socket:"LGA1851", platform:"iu2", ram:"DDR5", power:125, boostPower:250, tier:5, igpu:true, meta:"20 core / 20 thread · Intel Graphics", sub:"Platform desktop baru dengan chipset seri 800." },
+        { id:"cpu-u7-270k", brand:"Intel", name:"Core Ultra 7 270K Plus", year:2026, family:"Core Ultra 7 · 200S Plus · Arrow Lake", socket:"LGA1851", platform:"iu2", ram:"DDR5", power:125, boostPower:250, tier:6, igpu:true, meta:"24 core / 24 thread · DDR5 hingga 7200 MT/s", sub:"Generasi terbaru pada katalog; motherboard seri 800." },
+        { id:"cpu-r5-1600", brand:"AMD", name:"Ryzen 5 1600", year:2017, family:"Ryzen 5 · 1000 · Zen", socket:"AM4", platform:"r1", ram:"DDR4", power:65, boostPower:88, tier:2, igpu:false, meta:"6 core / 12 thread · tanpa grafis terintegrasi", sub:"Generasi pertama Ryzen desktop, platform AM4." },
+        { id:"cpu-r5-2600", brand:"AMD", name:"Ryzen 5 2600", year:2018, family:"Ryzen 5 · 2000 · Zen+", socket:"AM4", platform:"r2", ram:"DDR4", power:65, boostPower:88, tier:3, igpu:false, meta:"6 core / 12 thread · tanpa grafis terintegrasi", sub:"Zen+ 12 nm; kompatibilitas tergantung BIOS papan induk." },
+        { id:"cpu-r5-3600", brand:"AMD", name:"Ryzen 5 3600", year:2019, family:"Ryzen 5 · 3000 · Zen 2", socket:"AM4", platform:"r3", ram:"DDR4", power:65, boostPower:88, tier:4, igpu:false, meta:"6 core / 12 thread · tanpa grafis terintegrasi", sub:"Zen 2 membawa PCIe 4.0 di motherboard pilihan." },
+        { id:"cpu-r5-5600", brand:"AMD", name:"Ryzen 5 5600", year:2022, family:"Ryzen 5 · 5000 · Zen 3", socket:"AM4", platform:"r5", ram:"DDR4", power:65, boostPower:88, tier:4, igpu:false, meta:"6 core / 12 thread · tanpa grafis terintegrasi", sub:"Pilihan value gaming untuk platform AM4." },
+        { id:"cpu-r5-5600g", brand:"AMD", name:"Ryzen 5 5600G", year:2021, family:"Ryzen 5 · 5000G · Zen 3 APU", socket:"AM4", platform:"r5", ram:"DDR4", power:65, boostPower:88, tier:3, igpu:true, meta:"6 core / 12 thread · Radeon Vega 7", sub:"APU dengan grafis Vega, cocok untuk PC tanpa VGA diskrit." },
+        { id:"cpu-r5-7600", brand:"AMD", name:"Ryzen 5 7600", year:2023, family:"Ryzen 5 · 7000 · Zen 4", socket:"AM5", platform:"r7", ram:"DDR5", power:65, boostPower:88, tier:5, igpu:true, meta:"6 core / 12 thread · Radeon Graphics dasar", sub:"AM5 beralih ke DDR5; CPU ini memiliki grafis dasar." },
+        { id:"cpu-r7-8700g", brand:"AMD", name:"Ryzen 7 8700G", year:2024, family:"Ryzen 7 · 8000G · Zen 4 APU", socket:"AM5", platform:"r8", ram:"DDR5", power:65, boostPower:88, tier:5, igpu:true, meta:"8 core / 16 thread · Radeon 780M", sub:"APU desktop dengan grafis terintegrasi Radeon 700M." },
+        { id:"cpu-r5-9600x", brand:"AMD", name:"Ryzen 5 9600X", year:2024, family:"Ryzen 5 · 9000 · Zen 5", socket:"AM5", platform:"r9", ram:"DDR5", power:65, boostPower:88, tier:5, igpu:true, meta:"6 core / 12 thread · Radeon Graphics dasar", sub:"Zen 5, AM5; perbarui BIOS bila diperlukan." },
+        { id:"cpu-r7-9800x3d", brand:"AMD", name:"Ryzen 7 9800X3D", year:2024, family:"Ryzen 7 · 9000 · Zen 5 3D V-Cache", socket:"AM5", platform:"r9", ram:"DDR5", power:120, boostPower:162, tier:6, igpu:true, meta:"8 core / 16 thread · Radeon Graphics dasar", sub:"Model X3D 120 W untuk gaming dan pekerjaan berat." },
+        { id:"cpu-r9-9950x3d", brand:"AMD", name:"Ryzen 9 9950X3D", year:2025, family:"Ryzen 9 · 9000 · Zen 5 3D V-Cache", socket:"AM5", platform:"r9", ram:"DDR5", power:170, boostPower:230, tier:6, igpu:true, meta:"16 core / 32 thread · Radeon Graphics dasar", sub:"Ryzen desktop 16-core untuk game, simulasi, dan produksi berat." }
+      ],
+      board: [
+        { id:"mb-ga990fx", brand:"Gigabyte", name:"GA-990FXA-UD3 R5", year:2015, family:"AMD 9 Series · 990FX", socket:"AM3+", platform:["fx"], ram:"DDR3", maxMHz:2133, power:45, nvmeGen:0, meta:"AMD 990FX · ATX · DDR3", sub:"Motherboard era FX; gunakan SATA SSD bila tak ada NVMe." },
+        { id:"mb-z97", brand:"ASUS", name:"Z97-A", year:2015, family:"Intel 9 Series · Z97", socket:"LGA1150", platform:["i5"], ram:"DDR3", maxMHz:3200, power:50, nvmeGen:2, meta:"Intel Z97 · ATX · M.2 PCIe", sub:"Mendukung prosesor Broadwell LGA1150 tertentu." },
+        { id:"mb-z170", brand:"MSI", name:"Z170A Gaming M5", year:2015, family:"Intel 100 Series · Z170", socket:"LGA1151", platform:["i6"], ram:"DDR4", maxMHz:3600, power:55, nvmeGen:3, meta:"Intel Z170 · ATX · 4 DIMM", sub:"Papan enthusiast generasi Skylake; cocok untuk CPU gen 6." },
+        { id:"mb-h110", brand:"ASUS", name:"PRIME H110M-K", year:2016, family:"Intel 100 Series · H110", socket:"LGA1151", platform:["i6"], ram:"DDR4", maxMHz:2133, power:40, nvmeGen:0, meta:"Intel H110 · micro-ATX · 2 DIMM", sub:"Papan hemat untuk Intel Core generasi ke-6." },
+        { id:"mb-b250", brand:"ASUS", name:"PRIME B250M-A", year:2017, family:"Intel 200 Series · B250", socket:"LGA1151", platform:["i7"], ram:"DDR4", maxMHz:2400, power:42, nvmeGen:3, meta:"Intel B250 · micro-ATX · M.2", sub:"Chipset mainstream untuk prosesor Core generasi ke-7." },
+        { id:"mb-b360", brand:"MSI", name:"B360M PRO-VDH", year:2018, family:"Intel 300 Series · B360", socket:"LGA1151", platform:["i8","i9"], ram:"DDR4", maxMHz:2666, power:45, nvmeGen:3, meta:"Intel B360 · micro-ATX · M.2", sub:"Chipset seri 300 khusus platform Intel generasi 8/9." },
+        { id:"mb-b350", brand:"MSI", name:"B350 TOMAHAWK", year:2017, family:"AMD 300 Series · B350", socket:"AM4", platform:["r1","r2"], ram:"DDR4", maxMHz:3200, power:48, nvmeGen:3, meta:"AMD B350 · ATX · M.2 PCIe", sub:"Chipset awal AM4 untuk Ryzen 1000/2000; cek daftar CPU BIOS." },
+        { id:"mb-a320", brand:"ASUS", name:"PRIME A320M-K", year:2017, family:"AMD 300 Series · A320", socket:"AM4", platform:["r1","r2"], ram:"DDR4", maxMHz:3200, power:42, nvmeGen:3, meta:"AMD A320 · micro-ATX · M.2", sub:"Motherboard AM4 entry-level; cek BIOS sebelum memasang Ryzen." },
+        { id:"mb-b450", brand:"MSI", name:"B450 TOMAHAWK MAX", year:2019, family:"AMD 400 Series · B450", socket:"AM4", platform:["r1","r2","r3","r5"], ram:"DDR4", maxMHz:4133, power:50, nvmeGen:3, meta:"AMD B450 · ATX · 1 slot M.2", sub:"AM4 lintas generasi; pastikan dukungan dan versi BIOS CPU." },
+        { id:"mb-b460", brand:"Gigabyte", name:"B460M DS3H", year:2020, family:"Intel 400 Series · B460", socket:"LGA1200", platform:["i10"], ram:"DDR4", maxMHz:2933, power:44, nvmeGen:3, meta:"Intel B460 · micro-ATX · M.2", sub:"Motherboard Core gen 10 dengan dukungan NVMe PCIe 3.0." },
+        { id:"mb-b550", brand:"Gigabyte", name:"B550M DS3H", year:2020, family:"AMD 500 Series · B550", socket:"AM4", platform:["r3","r5"], ram:"DDR4", maxMHz:4733, power:48, nvmeGen:4, meta:"AMD B550 · micro-ATX · PCIe 4.0", sub:"Chipset populer untuk Ryzen 3000/5000, dukungan BIOS bervariasi." },
+        { id:"mb-b560", brand:"ASUS", name:"TUF GAMING B560-PLUS WIFI", year:2021, family:"Intel 500 Series · B560", socket:"LGA1200", platform:["i10","i11"], ram:"DDR4", maxMHz:5000, power:52, nvmeGen:4, meta:"Intel B560 · ATX · 2 slot M.2", sub:"Mendukung Intel generasi 10/11; fitur PCIe bergantung CPU." },
+        { id:"mb-x570", brand:"ASUS", name:"TUF GAMING X570-PLUS", year:2019, family:"AMD 500 Series · X570", socket:"AM4", platform:["r3","r5"], ram:"DDR4", maxMHz:4400, power:62, nvmeGen:4, meta:"AMD X570 · ATX · PCIe 4.0", sub:"Chipset enthusiast AM4; alokasi lane tergantung prosesor." },
+        { id:"mb-z690d4", brand:"MSI", name:"PRO Z690-A DDR4", year:2021, family:"Intel 600 Series · Z690", socket:"LGA1700", platform:["i12","i13","i14"], ram:"DDR4", maxMHz:5200, power:59, nvmeGen:4, meta:"Intel Z690 · ATX · DDR4", sub:"Versi DDR4. BIOS update mungkin diperlukan untuk CPU generasi baru." },
+        { id:"mb-z690d5", brand:"ASUS", name:"PRIME Z690-P WIFI", year:2021, family:"Intel 600 Series · Z690", socket:"LGA1700", platform:["i12","i13","i14"], ram:"DDR5", maxMHz:6000, power:62, nvmeGen:5, meta:"Intel Z690 · ATX · DDR5", sub:"Versi DDR5. Verifikasi dukungan BIOS untuk generasi 13/14." },
+        { id:"mb-b650", brand:"MSI", name:"PRO B650M-A WIFI", year:2022, family:"AMD 600 Series · B650", socket:"AM5", platform:["r7","r8","r9"], ram:"DDR5", maxMHz:7200, power:55, nvmeGen:5, meta:"AMD B650 · micro-ATX · AM5", sub:"Mendukung Ryzen 7000/8000/9000 dengan BIOS yang sesuai." },
+        { id:"mb-b760d4", brand:"Gigabyte", name:"B760M DS3H DDR4", year:2023, family:"Intel 700 Series · B760", socket:"LGA1700", platform:["i12","i13","i14"], ram:"DDR4", maxMHz:5333, power:48, nvmeGen:4, meta:"Intel B760 · micro-ATX · DDR4", sub:"Pilih varian memori yang sama dengan jenis RAM rakitan." },
+        { id:"mb-b760d5", brand:"MSI", name:"MAG B760 TOMAHAWK WIFI", year:2023, family:"Intel 700 Series · B760", socket:"LGA1700", platform:["i12","i13","i14"], ram:"DDR5", maxMHz:7000, power:56, nvmeGen:4, meta:"Intel B760 · ATX · DDR5", sub:"Platform LGA1700 generasi ke-12, 13, dan 14." },
+        { id:"mb-x670", brand:"ASUS", name:"TUF GAMING X670E-PLUS WIFI", year:2022, family:"AMD 600 Series · X670E", socket:"AM5", platform:["r7","r8","r9"], ram:"DDR5", maxMHz:7600, power:66, nvmeGen:5, meta:"AMD X670E · ATX · PCIe 5.0", sub:"AM5 kelas atas dengan lebih banyak konektivitas." },
+        { id:"mb-z790", brand:"Gigabyte", name:"Z790 AORUS ELITE AX", year:2023, family:"Intel 700 Series · Z790", socket:"LGA1700", platform:["i12","i13","i14"], ram:"DDR5", maxMHz:7600, power:64, nvmeGen:5, meta:"Intel Z790 · ATX · DDR5", sub:"Board enthusiast; cek dukungan CPU lewat versi BIOS." },
+        { id:"mb-z890", brand:"ASUS", name:"PRIME Z890-P WIFI", year:2024, family:"Intel 800 Series · Z890", socket:"LGA1851", platform:["iu2"], ram:"DDR5", maxMHz:8800, power:60, nvmeGen:5, meta:"Intel Z890 · ATX · LGA1851", sub:"Platform Core Ultra desktop seri 2; hanya DDR5." },
+        { id:"mb-b850", brand:"MSI", name:"MAG B850 TOMAHAWK MAX WIFI", year:2025, family:"AMD 800 Series · B850", socket:"AM5", platform:["r7","r8","r9"], ram:"DDR5", maxMHz:8200, power:59, nvmeGen:5, meta:"AMD B850 · ATX · PCIe 5.0 NVMe", sub:"Chipset AM5 generasi baru untuk Ryzen 7000/8000/9000." },
+        { id:"mb-x870", brand:"Gigabyte", name:"X870 AORUS ELITE WIFI7", year:2025, family:"AMD 800 Series · X870", socket:"AM5", platform:["r7","r8","r9"], ram:"DDR5", maxMHz:8600, power:65, nvmeGen:5, meta:"AMD X870 · ATX · USB4", sub:"Board AM5 kelas atas; memerlukan RAM DDR5." }
+      ],
+      ram: [
+        { id:"ram-kingston-ddr3", brand:"Kingston", name:"FURY Beast DDR3 · 8 GB", year:2015, family:"DDR3 · kit 2×4 GB", type:"DDR3", capacity:8, speed:1600, power:4, meta:"1600 MT/s · CL10", sub:"Dua modul 4 GB; untuk board yang memakai DDR3." },
+        { id:"ram-corsair-ddr3", brand:"Corsair", name:"Vengeance DDR3 · 16 GB", year:2015, family:"DDR3 · kit 2×8 GB", type:"DDR3", capacity:16, speed:1866, power:6, meta:"1866 MT/s · CL10", sub:"Kapasitas lebih lega untuk platform desktop lama." },
+        { id:"ram-adata-ddr3", brand:"ADATA XPG", name:"V1 DDR3 · 16 GB", year:2015, family:"DDR3 · kit 2×8 GB", type:"DDR3", capacity:16, speed:1600, power:6, meta:"1600 MT/s · CL9", sub:"Kit DDR3 kelas mainstream, estimasi daya 6 W." },
+        { id:"ram-crucial-2133", brand:"Crucial", name:"Ballistix DDR4 · 16 GB", year:2015, family:"DDR4 · kit 2×8 GB", type:"DDR4", capacity:16, speed:2133, power:5, meta:"2133 MT/s · CL16", sub:"Memori DDR4 dasar untuk motherboard DDR4." },
+        { id:"ram-kingston-2400", brand:"Kingston Fury", name:"Beast DDR4 · 16 GB", year:2017, family:"DDR4 · kit 2×8 GB", type:"DDR4", capacity:16, speed:2400, power:5, meta:"2400 MT/s · CL15", sub:"Kecepatan standar generasi Intel Core ke-7." },
+        { id:"ram-corsair-2666", brand:"Corsair", name:"Vengeance LPX DDR4 · 16 GB", year:2018, family:"DDR4 · kit 2×8 GB", type:"DDR4", capacity:16, speed:2666, power:5, meta:"2666 MT/s · CL16", sub:"Kit low-profile untuk rakitan Intel/AMD DDR4." },
+        { id:"ram-gskill-3200", brand:"G.Skill", name:"Ripjaws V DDR4 · 32 GB", year:2019, family:"DDR4 · kit 2×16 GB", type:"DDR4", capacity:32, speed:3200, power:7, meta:"3200 MT/s · CL16 · XMP", sub:"Pilihan umum Ryzen AM4 dan gaming 1080p." },
+        { id:"ram-team-3200", brand:"TeamGroup T-Force", name:"Vulcan Z DDR4 · 32 GB", year:2020, family:"DDR4 · kit 2×16 GB", type:"DDR4", capacity:32, speed:3200, power:7, meta:"3200 MT/s · CL16 · XMP", sub:"RAM gaming dari TeamGroup, total estimasi 7 W." },
+        { id:"ram-adata-3600", brand:"ADATA XPG", name:"Spectrix D60G DDR4 · 32 GB", year:2020, family:"DDR4 · kit 2×16 GB", type:"DDR4", capacity:32, speed:3600, power:8, meta:"3600 MT/s · CL18 · XMP", sub:"Kit RGB; kecepatan XMP perlu diaktifkan di BIOS." },
+        { id:"ram-kingston-3600", brand:"Kingston Fury", name:"Renegade DDR4 · 32 GB", year:2021, family:"DDR4 · kit 2×16 GB", type:"DDR4", capacity:32, speed:3600, power:8, meta:"3600 MT/s · CL16 · XMP", sub:"Kit performa DDR4 untuk rakitan AM4/LGA1700." },
+        { id:"ram-gskill-ddr5", brand:"G.Skill", name:"Flare X5 DDR5 · 32 GB", year:2022, family:"DDR5 · kit 2×16 GB", type:"DDR5", capacity:32, speed:6000, power:8, meta:"6000 MT/s · CL36 · AMD EXPO", sub:"Kit AMD EXPO yang populer pada platform AM5." },
+        { id:"ram-corsair-ddr5", brand:"Corsair", name:"Vengeance DDR5 · 32 GB", year:2022, family:"DDR5 · kit 2×16 GB", type:"DDR5", capacity:32, speed:5600, power:8, meta:"5600 MT/s · CL36 · XMP", sub:"Kecepatan DDR5 mainstream; cocokkan kit QVL." },
+        { id:"ram-kingston-ddr5", brand:"Kingston Fury", name:"Beast DDR5 · 32 GB", year:2023, family:"DDR5 · kit 2×16 GB", type:"DDR5", capacity:32, speed:6000, power:8, meta:"6000 MT/s · CL36 · EXPO/XMP", sub:"Kit dual-channel DDR5 dari Kingston Fury." },
+        { id:"ram-team-ddr5", brand:"TeamGroup T-Force", name:"Delta RGB DDR5 · 32 GB", year:2023, family:"DDR5 · kit 2×16 GB", type:"DDR5", capacity:32, speed:6400, power:9, meta:"6400 MT/s · CL40 · XMP", sub:"Kit DDR5 RGB; kecepatan tergantung CPU dan board." },
+        { id:"ram-adata-ddr5", brand:"ADATA XPG", name:"Lancer Blade DDR5 · 64 GB", year:2024, family:"DDR5 · kit 2×32 GB", type:"DDR5", capacity:64, speed:6000, power:10, meta:"6000 MT/s · CL30 · EXPO", sub:"Kapasitas 64 GB untuk produksi konten dan komputasi." },
+        { id:"ram-gskill-7200", brand:"G.Skill", name:"Trident Z5 DDR5 · 32 GB", year:2024, family:"DDR5 · kit 2×16 GB", type:"DDR5", capacity:32, speed:7200, power:10, meta:"7200 MT/s · CL34 · XMP", sub:"Kit kecepatan tinggi; stabilitas perlu diuji per sistem." },
+        { id:"ram-corsair-8000", brand:"Corsair", name:"Dominator Titanium DDR5 · 64 GB", year:2025, family:"DDR5 · kit 2×32 GB", type:"DDR5", capacity:64, speed:8000, power:12, meta:"8000 MT/s · CL38 · XMP", sub:"Kit enthusiast; tak semua CPU/board mencapai rating ini." }
+      ],
+      storage: [
+        { id:"ssd-samsung950", brand:"Samsung", name:"950 PRO · 512 GB", year:2015, family:"NVMe · M.2 · PCIe 3.0", capacity:512, gen:3, power:5, meta:"M.2 2280 · hingga 2.500 MB/s", sub:"Salah satu SSD NVMe konsumen awal yang dikenal luas." },
+        { id:"ssd-wd-sn750", brand:"WD Black", name:"SN750 · 1 TB", year:2019, family:"NVMe · M.2 · PCIe 3.0", capacity:1024, gen:3, power:6, meta:"M.2 2280 · PCIe Gen 3", sub:"SSD Gen3 untuk sistem dan pustaka permainan." },
+        { id:"ssd-samsung980", brand:"Samsung", name:"980 PRO · 1 TB", year:2020, family:"NVMe · M.2 · PCIe 4.0", capacity:1024, gen:4, power:8, meta:"M.2 2280 · hingga 7.000 MB/s", sub:"SSD Gen4, gunakan heatsink saat beban berkelanjutan." },
+        { id:"ssd-kingstonkc", brand:"Kingston", name:"KC3000 · 1 TB", year:2021, family:"NVMe · M.2 · PCIe 4.0", capacity:1024, gen:4, power:9, meta:"M.2 2280 · Gen4 x4", sub:"Pilihan NVMe Gen4 untuk editing dan aplikasi berat." },
+        { id:"ssd-wdsn850x", brand:"WD Black", name:"SN850X · 2 TB", year:2022, family:"NVMe · M.2 · PCIe 4.0", capacity:2048, gen:4, power:8, meta:"M.2 2280 · hingga 7.300 MB/s", sub:"Kapasitas 2 TB untuk pustaka game dan media." },
+        { id:"ssd-samsung990", brand:"Samsung", name:"990 PRO · 2 TB", year:2023, family:"NVMe · M.2 · PCIe 4.0", capacity:2048, gen:4, power:8, meta:"M.2 2280 · PCIe 4.0 x4", sub:"Gen4 berkecepatan tinggi; estimasi beban 8 W." },
+        { id:"ssd-crucialt500", brand:"Crucial", name:"T500 · 2 TB", year:2023, family:"NVMe · M.2 · PCIe 4.0", capacity:2048, gen:4, power:8, meta:"M.2 2280 · Gen4 x4", sub:"SSD NVMe PCIe 4.0 untuk aplikasi dan game." },
+        { id:"ssd-crucialt705", brand:"Crucial", name:"T705 · 2 TB", year:2024, family:"NVMe · M.2 · PCIe 5.0", capacity:2048, gen:5, power:11, meta:"M.2 2280 · PCIe 5.0", sub:"Kencang, panas di bawah beban; gunakan pendingin M.2." },
+        { id:"ssd-kc3000-4tb", brand:"Kingston", name:"KC3000 · 4 TB", year:2024, family:"NVMe · M.2 · PCIe 4.0", capacity:4096, gen:4, power:10, meta:"M.2 2280 · Gen4 x4", sub:"Penyimpanan besar untuk video, aset, dan proyek." },
+        { id:"ssd-samsung9100", brand:"Samsung", name:"9100 PRO · 2 TB", year:2025, family:"NVMe · M.2 · PCIe 5.0", capacity:2048, gen:5, power:12, meta:"M.2 2280 · Gen5", sub:"Generasi PCIe 5.0; pilih motherboard dan heatsink sesuai." }
+      ],
+      gpu: [
+        { id:"gpu-igpu", brand:"Intel / AMD", name:"Grafis terintegrasi prosesor", year:2015, family:"iGPU · Radeon / Intel Graphics", mode:"integrated", tier:0, power:0, meta:"0 W tambahan · PSU tidak dibebani kartu diskrit", sub:"Pilih untuk klien kantor; CPU harus memiliki iGPU." },
+        { id:"gpu-gtx960", brand:"NVIDIA · ASUS", name:"GeForce GTX 960 · 2 GB", year:2015, family:"GeForce GTX 900 · Maxwell", mode:"discrete", tier:1, power:120, meta:"Daya papan sekitar 120 W · 2 GB GDDR5", sub:"Kartu entry-level era 2015; estimasi daya kartu." },
+        { id:"gpu-rx480", brand:"AMD · Sapphire", name:"Radeon RX 480 · 8 GB", year:2016, family:"Radeon RX 400 · Polaris", mode:"discrete", tier:2, power:150, meta:"Total board power sekitar 150 W · 8 GB", sub:"Pilihan gaming mainstream Radeon generasi Polaris." },
+        { id:"gpu-gtx1060", brand:"NVIDIA · MSI", name:"GeForce GTX 1060 · 6 GB", year:2016, family:"GeForce GTX 10 · Pascal", mode:"discrete", tier:2, power:120, meta:"Daya papan sekitar 120 W · 6 GB GDDR5", sub:"Pascal populer untuk gaming 1080p." },
+        { id:"gpu-rx580", brand:"AMD · PowerColor", name:"Radeon RX 580 · 8 GB", year:2017, family:"Radeon RX 500 · Polaris", mode:"discrete", tier:2, power:185, meta:"Total board power sekitar 185 W · 8 GB", sub:"Penyegaran Polaris dengan kebutuhan daya lebih tinggi." },
+        { id:"gpu-rxvega56", brand:"AMD · Sapphire", name:"Radeon RX Vega 56 · 8 GB", year:2017, family:"Radeon RX Vega · Vega", mode:"discrete", tier:3, power:210, meta:"Total board power sekitar 210 W · 8 GB HBM2", sub:"Arsitektur Vega kelas antusiasme sebelum generasi RDNA." },
+        { id:"gpu-rtx2060", brand:"NVIDIA · Gigabyte", name:"GeForce RTX 2060 · 6 GB", year:2019, family:"GeForce RTX 20 · Turing", mode:"discrete", tier:3, power:160, meta:"Daya papan sekitar 160 W · RT / Tensor", sub:"Generasi GeForce RTX pertama untuk ray tracing." },
+        { id:"gpu-rx5700xt", brand:"AMD · Sapphire", name:"Radeon RX 5700 XT · 8 GB", year:2019, family:"Radeon RX 5000 · RDNA 1", mode:"discrete", tier:4, power:225, meta:"Total board power sekitar 225 W · 8 GB GDDR6", sub:"Kartu RDNA generasi pertama; contoh model 1440p." },
+        { id:"gpu-rx6600", brand:"AMD · Sapphire", name:"Radeon RX 6600 · 8 GB", year:2021, family:"Radeon RX 6000 · RDNA 2", mode:"discrete", tier:3, power:132, meta:"Total board power sekitar 132 W · 8 GB", sub:"Kartu 1080p efisien dengan arsitektur RDNA 2." },
+        { id:"gpu-rtx3060", brand:"NVIDIA · MSI", name:"GeForce RTX 3060 · 12 GB", year:2021, family:"GeForce RTX 30 · Ampere", mode:"discrete", tier:4, power:170, meta:"Daya papan sekitar 170 W · 12 GB", sub:"Kapasitas VRAM lega untuk game dan pekerjaan kreatif." },
+        { id:"gpu-rx7900xt", brand:"AMD · XFX", name:"Radeon RX 7900 XT · 20 GB", year:2022, family:"Radeon RX 7000 · RDNA 3", mode:"discrete", tier:5, power:315, meta:"Total board power sekitar 315 W · 20 GB", sub:"GPU kelas enthusiast Radeon, perlu PSU bertenaga." },
+        { id:"gpu-rtx4060", brand:"NVIDIA · ASUS", name:"GeForce RTX 4060 · 8 GB", year:2023, family:"GeForce RTX 40 · Ada Lovelace", mode:"discrete", tier:4, power:115, meta:"Daya papan sekitar 115 W · 8 GB GDDR6", sub:"Kartu hemat daya dengan dukungan DLSS generasi terbaru." },
+        { id:"gpu-rtx4070s", brand:"NVIDIA · MSI", name:"GeForce RTX 4070 SUPER · 12 GB", year:2024, family:"GeForce RTX 40 · Ada Lovelace", mode:"discrete", tier:5, power:220, meta:"Daya papan sekitar 220 W · 12 GB", sub:"Kelas gaming 1440p; kapasitas bergantung versi partner." },
+        { id:"gpu-rx9070xt", brand:"AMD · Sapphire", name:"Radeon RX 9070 XT · 16 GB", year:2025, family:"Radeon RX 9000 · RDNA 4", mode:"discrete", tier:6, power:304, meta:"Total board power resmi 304 W · 16 GB", sub:"GPU RDNA 4; varian partner dapat berbeda dari desain acuan." },
+        { id:"gpu-rtx5070", brand:"NVIDIA · Gigabyte", name:"GeForce RTX 5070 · 12 GB", year:2025, family:"GeForce RTX 50 · Blackwell", mode:"discrete", tier:6, power:250, meta:"Daya papan acuan sekitar 250 W · GDDR7", sub:"GeForce generasi Blackwell; daya kartu khusus vendor bisa bervariasi." },
+        { id:"gpu-rtx5090", brand:"NVIDIA · Founders Edition", name:"GeForce RTX 5090 · 32 GB", year:2025, family:"GeForce RTX 50 · Blackwell", mode:"discrete", tier:7, power:575, meta:"Total Graphics Power resmi 575 W · GDDR7", sub:"GPU flagship berdaya sangat tinggi; cek PSU dan konektor." }
+      ],
+      psu: [
+        { id:"psu-fsp450", brand:"FSP", name:"HV PRO 450 · 450 W", year:2015, family:"80 PLUS White · ATX", capacity:450, power:0, meta:"Kapasitas 450 W · Active PFC", sub:"Kapasitas keluaran, bukan daya yang dipakai sendiri." },
+        { id:"psu-corsair550", brand:"Corsair", name:"CV550 · 550 W", year:2019, family:"80 PLUS Bronze · ATX", capacity:550, power:0, meta:"Kapasitas 550 W · garansi terbatas sesuai wilayah", sub:"Sumber daya 550 W; kebutuhan sistem dihitung terpisah." },
+        { id:"psu-xpg550", brand:"ADATA XPG", name:"Pylon 550 · 550 W", year:2020, family:"80 PLUS Bronze · ATX", capacity:550, power:0, meta:"Kapasitas 550 W · DC-to-DC", sub:"Kapasitas nominal PSU; beban komponen muncul di kalkulator." },
+        { id:"psu-cm650", brand:"Cooler Master", name:"MWE 650 Bronze V2 · 650 W", year:2020, family:"80 PLUS Bronze · ATX", capacity:650, power:0, meta:"Kapasitas 650 W · Bronze", sub:"Opsi 650 W untuk rakitan gaming mainstream." },
+        { id:"psu-evga650", brand:"EVGA", name:"650 BQ · 650 W", year:2018, family:"80 PLUS Bronze · semi-modular", capacity:650, power:0, meta:"Kapasitas 650 W · semi-modular", sub:"PSU semi-modular; stok dan garansi mengikuti wilayah." },
+        { id:"psu-seasonic750", brand:"Seasonic", name:"FOCUS GX-750 · 750 W", year:2022, family:"80 PLUS Gold · modular", capacity:750, power:0, meta:"Kapasitas 750 W · modular", sub:"PSU Gold untuk GPU menengah atas." },
+        { id:"psu-bequiet850", brand:"be quiet!", name:"Pure Power 12 M · 850 W", year:2023, family:"80 PLUS Gold · ATX 3.0", capacity:850, power:0, meta:"Kapasitas 850 W · modular · konektor modern", sub:"Kapasitas kuat untuk workstation/gaming kelas atas." },
+        { id:"psu-msi850", brand:"MSI", name:"MAG A850GL PCIE5 · 850 W", year:2023, family:"80 PLUS Gold · ATX 3.0", capacity:850, power:0, meta:"Kapasitas 850 W · fully modular", sub:"850 W dengan konektor 16-pin pada model tertentu." },
+        { id:"psu-asus1000", brand:"ASUS TUF Gaming", name:"TUF Gaming 1000G · 1000 W", year:2024, family:"80 PLUS Gold · ATX 3.0", capacity:1000, power:0, meta:"Kapasitas 1000 W · modular", sub:"Ruang kapasitas ekstra untuk GPU besar dan upgrade." },
+        { id:"psu-corsair1200", brand:"Corsair", name:"RM1200x Shift · 1200 W", year:2024, family:"80 PLUS Gold · ATX 3.0", capacity:1200, power:0, meta:"Kapasitas 1200 W · modular", sub:"PSU 1200 W untuk sistem flagship berdaya besar." }
+      ],
+      keyboard: [
+        { id:"kb-logitech-k120", brand:"Logitech", name:"K120 Wired Keyboard", year:2015, family:"Kabel USB · membran", power:1, meta:"USB · layout full-size", sub:"Keyboard kantor sederhana; estimasi beban USB 1 W." },
+        { id:"kb-ducky-one2", brand:"Ducky", name:"One 2 Mini", year:2018, family:"Kabel USB · mekanikal 60%", power:2, meta:"USB-C · switch mekanikal", sub:"Keyboard ringkas untuk meja gaming." },
+        { id:"kb-logitech-mx", brand:"Logitech", name:"MX Keys S", year:2023, family:"Bluetooth / USB · low-profile", power:2, meta:"Bluetooth / Logi Bolt · isi ulang", sub:"Keyboard produktivitas; konsumsi saat digunakan diperkirakan 2 W." },
+        { id:"kb-keychron-k2", brand:"Keychron", name:"K2 Pro", year:2023, family:"Bluetooth / USB · mekanikal", power:2, meta:"USB-C / Bluetooth · 75%", sub:"Layout 75%; konsumsi perangkat tipikal sekitar 2 W." },
+        { id:"kb-corsair-k70", brand:"Corsair", name:"K70 RGB PRO", year:2022, family:"Kabel USB · mekanikal RGB", power:4, meta:"USB · full-size · lampu RGB", sub:"Lampu RGB menambah beban; angka memakai asumsi tipikal." }
+      ],
+      mouse: [
+        { id:"mouse-logitech-b100", brand:"Logitech", name:"B100 Optical Mouse", year:2015, family:"Kabel USB · optik", power:1, meta:"USB · 800 dpi", sub:"Mouse dasar; estimasi beban USB sekitar 1 W." },
+        { id:"mouse-logitech-g102", brand:"Logitech", name:"G102 LIGHTSYNC", year:2019, family:"Kabel USB · gaming", power:2, meta:"USB · hingga 8.000 dpi · RGB", sub:"Mouse gaming berkabel; estimasi beban tipikal 2 W." },
+        { id:"mouse-razer-viper", brand:"Razer", name:"Viper V2 Pro", year:2022, family:"Nirkabel / kabel · gaming", power:2, meta:"2.4 GHz / USB-C · optik", sub:"Daya bermain dari baterai; beban pengisian USB diperkirakan 2 W." },
+        { id:"mouse-logitech-mx3s", brand:"Logitech", name:"MX Master 3S", year:2022, family:"Bluetooth / USB · produktivitas", power:2, meta:"Bluetooth / Logi Bolt · isi ulang", sub:"Mouse ergonomis nirkabel; gunakan angka sebagai estimasi." },
+        { id:"mouse-steelseries", brand:"SteelSeries", name:"Aerox 5 Wireless", year:2022, family:"2.4 GHz / Bluetooth · gaming", power:2, meta:"Nirkabel / USB-C · 9 tombol", sub:"Beban USB dihitung saat pengisian; saat nirkabel memakai baterai." }
+      ]
+    };
+    var challenges = [
+      { id:"office", icon:"briefcase", name:"Admin kantor", kind:"Perkantoran", desc:"PC harian untuk dokumen, rapat daring, dan aplikasi administrasi. Utamakan hemat daya; grafis terintegrasi sudah cukup.", cpu:1, ram:8, ramType:"DDR3", gpu:0, gpuMode:"integrated", storage:256, maxW:160, psuMin:200, reward:100, accent:"Kerja ringan" },
+      { id:"lab", icon:"graduation-cap", name:"Lab komputer kampus", kind:"Pendidikan", desc:"Puluhan PC untuk browser, IDE dasar, dan materi kuliah. Minta memori 16 GB serta sistem yang mudah dirawat.", cpu:2, ram:16, ramType:"DDR4", gpu:0, gpuMode:"integrated", storage:512, maxW:210, psuMin:250, reward:110, accent:"Ruang belajar" },
+      { id:"remote", icon:"wifi", name:"Staf kerja jarak jauh", kind:"Produktivitas", desc:"Video conference, banyak tab, spreadsheet, dan penyimpanan responsif. Rakitan kecil harus senyap dan irit.", cpu:2, ram:16, ramType:"DDR4", gpu:0, gpuMode:"integrated", storage:512, maxW:200, psuMin:250, reward:120, accent:"Hemat energi" },
+      { id:"developer", icon:"code", name:"Developer aplikasi", kind:"Pekerjaan teknis", desc:"IDE, kompilasi, container ringan, dan multitasking. Perlu CPU yang sigap, RAM 32 GB, dan SSD lega.", cpu:3, ram:32, ramType:"DDR4", gpu:0, gpuMode:"any", storage:1024, maxW:300, psuMin:400, reward:130, accent:"Multitasking" },
+      { id:"esports", icon:"gamepad-2", name:"Gaming e-sport 1080p", kind:"Gaming", desc:"Rakitan kompetitif untuk game e-sport pada resolusi 1080p. VGA diskrit entry/mid-range dan respons cepat.", cpu:3, ram:16, ramType:"DDR4", gpu:2, gpuMode:"discrete", storage:512, maxW:360, psuMin:450, reward:140, accent:"Frame rate stabil" },
+      { id:"creator", icon:"pen-tool", name:"Desainer grafis", kind:"Kreatif", desc:"Aplikasi desain, ilustrasi, dan editing foto resolusi tinggi. Target 32 GB, GPU diskrit, serta SSD 1 TB.", cpu:3, ram:32, ramType:"DDR4", gpu:3, gpuMode:"discrete", storage:1024, maxW:500, psuMin:600, reward:150, accent:"Karya visual" },
+      { id:"gaming1440", icon:"monitor-play", name:"Gaming 1440p", kind:"Gaming", desc:"Game AAA pada 1440p dengan pengaturan tinggi. Cari CPU modern, DDR5 32 GB, dan VGA diskrit kelas atas.", cpu:4, ram:32, ramType:"DDR5", gpu:5, gpuMode:"discrete", storage:1024, maxW:620, psuMin:750, reward:160, accent:"AAA · 1440p" },
+      { id:"streamer", icon:"radio", name:"Streamer & editor", kind:"Streaming", desc:"Bermain sambil siaran, menangkap video, dan mengedit konten. Sediakan banyak core, RAM 32 GB, dan GPU diskrit.", cpu:4, ram:32, ramType:"DDR4", gpu:4, gpuMode:"discrete", storage:1024, maxW:590, psuMin:750, reward:170, accent:"Game & siaran" },
+      { id:"ai", icon:"brain", name:"Studio 3D / AI", kind:"Workstation", desc:"Proyek visual berat dan eksperimen AI skala pribadi. Perlu CPU kuat, 64 GB DDR5, GPU kelas flagship, dan SSD 2 TB.", cpu:5, ram:64, ramType:"DDR5", gpu:7, gpuMode:"discrete", storage:2048, maxW:950, psuMin:1200, reward:180, accent:"Komputasi berat" },
+      { id:"eco", icon:"leaf", name:"PC hemat energi", kind:"Perkantoran", desc:"Komputer kasir atau ruang administrasi yang bekerja berjam-jam. Grafis terintegrasi, 16 GB, NVMe, dan batas konsumsi ketat.", cpu:1, ram:16, ramType:"DDR3", gpu:0, gpuMode:"integrated", storage:512, maxW:150, psuMin:200, reward:200, accent:"Efisiensi daya" }
+    ];
+    var slotOrder = ["board","cpu","ram","storage","gpu","psu","keyboard","mouse"];
+    var slotLabels = { board:"Motherboard", cpu:"Prosesor", ram:"RAM", storage:"NVMe", gpu:"VGA / GPU", psu:"PSU", keyboard:"Keyboard", mouse:"Mouse" };
+    var glyphs = { board:"MB", cpu:"CPU", ram:"RAM", storage:"SSD", gpu:"GPU", psu:"PSU", keyboard:"KEY", mouse:"M" };
+    var state = { challenge:0, category:"cpu", selection:{}, query:"", year:"all", brand:"all", lastCheck:null };
+    var STORAGE_KEY = "itats-rakit-pc-v1";
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch (err) { saved = {}; }
+    state.score = Number(saved.score) || 0;
+    state.done = Array.isArray(saved.done) ? saved.done.filter(function(id){ return challenges.some(function(c){ return c.id === id; }); }) : [];
+    function escapeHTML(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, function(ch) {
+        return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];
+      });
+    }
+    function categoryFor(id) { return categories.find(function(c){ return c.id === id; }); }
+    function getPart(type) {
+      var id = state.selection[type];
+      return id ? (catalog[type] || []).find(function(item){ return item.id === id; }) || null : null;
+    }
+    function allReady() { return slotOrder.every(function(type){ return !!getPart(type); }); }
+    function formatCapacity(gb) { return gb >= 1024 ? (gb / 1024) + " TB" : gb + " GB"; }
+    function formatPower(part, type) {
+      if (!part) return "—";
+      if (type === "psu") return "0 W · " + part.capacity + " W kapasitas";
+      return part.power + " W";
+    }
+    function partIcon(type) {
+      var meta = categoryFor(type);
+      var iconName = meta ? meta.icon : "cpu";
+      return '<span class="icon-fallback" aria-hidden="true">' + escapeHTML((meta && meta.glyph) || glyphs[type] || "PC") + '</span><i data-lucide="' + escapeHTML(iconName) + '" aria-hidden="true"></i>';
+    }
+    function iconMarkup(name, fallback) {
+      return '<span class="icon-fallback" aria-hidden="true">' + escapeHTML(fallback || "•") + '</span><i data-lucide="' + escapeHTML(name) + '" aria-hidden="true"></i>';
+    }
+    function refreshIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+        document.querySelectorAll(".icon-fallback").forEach(function(fallback) {
+          if (fallback.parentElement && fallback.parentElement.querySelector("svg")) fallback.hidden = true;
+        });
+      }
+    }
+    function persist() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({score:state.score, done:state.done})); } catch (err) {}
+    }
+    function showToast(message) {
+      var toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(function(){ toast.classList.remove("visible"); }, 2300);
+    }
+    function currentChallenge() { return challenges[state.challenge]; }
+    function renderHeader() {
+      document.getElementById("scoreValue").textContent = state.score.toLocaleString("id-ID");
+      document.getElementById("progressHero").textContent = state.done.length + "/10";
+      document.getElementById("progressText").textContent = state.done.length + " dari 10 challenge rampung";
+      document.getElementById("progressBar").style.width = (state.done.length * 10) + "%";
+    }
+    function renderMissions() {
+      document.getElementById("missionList").innerHTML = challenges.map(function(challenge, index) {
+        var complete = state.done.indexOf(challenge.id) !== -1;
+        return '<button type="button" class="mission-button ' + (index === state.challenge ? "active " : "") + (complete ? "completed" : "") + '" data-mission="' + index + '" aria-pressed="' + (index === state.challenge) + '">' +
+          '<span class="mission-number">' + (complete ? '<i data-lucide="check"></i>' : String(index + 1).padStart(2,"0")) + '</span>' +
+          '<span><span class="mission-name">' + escapeHTML(challenge.name) + '</span><span class="mission-class">' + escapeHTML(challenge.kind) + '</span></span>' +
+          (complete ? '<i class="mission-mark" data-lucide="badge-check" aria-label="Selesai"></i>' : '') + '</button>';
+      }).join("");
+      refreshIcons();
+    }
+    function renderChallenge() {
+      var challenge = currentChallenge();
+      var ramText = challenge.ram + " GB " + challenge.ramType + "+";
+      var gpuText = challenge.gpuMode === "integrated" ? "iGPU · tanpa kartu" : (challenge.gpuMode === "discrete" ? "Diskrit · tier " + challenge.gpu + "+" : "Bebas");
+      var complete = state.done.indexOf(challenge.id) !== -1;
+      document.getElementById("clientCard").innerHTML =
+        '<div class="client-top"><div><span class="client-tag"><i data-lucide="' + escapeHTML(challenge.icon) + '"></i> ' + escapeHTML(challenge.kind) + '</span>' +
+        '<h2>' + escapeHTML(challenge.name) + '</h2><p>' + escapeHTML(challenge.desc) + '</p></div>' +
+        '<span class="client-tag">' + escapeHTML(challenge.accent) + '</span></div>' +
+        '<div class="target-grid">' +
+        '<div class="target-chip"><small>Target prosesor</small><strong>Tier ' + challenge.cpu + '+</strong></div>' +
+        '<div class="target-chip"><small>Memori minimum</small><strong>' + escapeHTML(ramText) + '</strong></div>' +
+        '<div class="target-chip"><small>Grafis</small><strong>' + escapeHTML(gpuText) + '</strong></div>' +
+        '<div class="target-chip"><small>Penyimpanan</small><strong>NVMe ' + escapeHTML(formatCapacity(challenge.storage)) + '+</strong></div>' +
+        '<div class="target-chip"><small>Batas beban sistem</small><strong>Maks. ' + challenge.maxW + ' W</strong></div>' +
+        '<div class="target-chip"><small>PSU minimum</small><strong>' + challenge.psuMin + ' W kapasitas</strong></div></div>' +
+        '<div class="client-footer"><span class="reward">' + (complete ? "Misi telah diselesaikan · +" + challenge.reward + " poin" : "Hadiah misi · " + challenge.reward + " poin") + '</span><span class="action-row"><button type="button" id="suggestBuild" class="button soft"><i data-lucide="sparkles"></i> Isi saran</button></span></div>';
+      refreshIcons();
+    }
+    function renderCategories() {
+      document.getElementById("categoryTabs").innerHTML = categories.map(function(category) {
+        return '<button type="button" role="tab" aria-selected="' + (state.category === category.id) + '" class="category-tab ' + (state.category === category.id ? "active" : "") + '" data-category="' + category.id + '">' + iconMarkup(category.icon, category.glyph) + '<span>' + escapeHTML(category.label) + '</span></button>';
+      }).join("");
+      refreshIcons();
+    }
+    function makeSpecs(part, type) {
+      if (type === "cpu") return [
+        part.family, part.socket, (part.igpu ? "iGPU tersedia" : "tanpa iGPU"), "TDP " + part.power + " W" + (part.boostPower > part.power ? " · turbo maks. " + part.boostPower + " W" : "")
+      ];
+      if (type === "board") return [part.family, part.socket, part.ram, "maks. " + part.maxMHz + " MT/s", "NVMe Gen " + part.nvmeGen];
+      if (type === "ram") return [part.family, part.speed + " MT/s", "Estimasi " + part.power + " W"];
+      if (type === "storage") return [part.family, formatCapacity(part.capacity), "NVMe Gen " + part.gen];
+      if (type === "gpu") return [part.family, part.mode === "integrated" ? "tanpa kartu diskrit" : "kelas grafis " + part.tier];
+      if (type === "psu") return [part.family, "kapasitas " + part.capacity + " W", "beban PSU tidak dijumlahkan"];
+      return [part.family, "beban tipikal " + part.power + " W"];
+    }
+    function matchesFilters(part) {
+      var query = state.query.trim().toLowerCase();
+      var searchable = [part.brand, part.name, part.family, part.meta, part.sub, part.socket, part.ram, part.type].join(" ").toLowerCase();
+      return (!query || searchable.indexOf(query) !== -1) &&
+        (state.year === "all" || String(part.year) === state.year) &&
+        (state.brand === "all" || part.brand === state.brand);
+    }
+    function renderFilters() {
+      var items = catalog[state.category].slice();
+      var years = Array.from(new Set(items.map(function(item){ return item.year; }))).sort(function(a,b){ return b-a; });
+      var brands = Array.from(new Set(items.map(function(item){ return item.brand; }))).sort();
+      var yearSelect = document.getElementById("yearFilter");
+      var brandSelect = document.getElementById("brandFilter");
+      yearSelect.innerHTML = '<option value="all">Semua thn</option>' + years.map(function(year){ return '<option value="' + year + '">' + year + '</option>'; }).join("");
+      brandSelect.innerHTML = '<option value="all">Semua merek</option>' + brands.map(function(brand){ return '<option value="' + escapeHTML(brand) + '">' + escapeHTML(brand) + '</option>'; }).join("");
+      yearSelect.value = years.indexOf(Number(state.year)) >= 0 ? state.year : "all";
+      brandSelect.value = brands.indexOf(state.brand) >= 0 ? state.brand : "all";
+      if (yearSelect.value !== state.year) state.year = "all";
+      if (brandSelect.value !== state.brand) state.brand = "all";
+      document.getElementById("searchFilter").value = state.query;
+    }
+    function renderCatalog() {
+      var type = state.category;
+      var items = catalog[type].filter(matchesFilters).sort(function(a,b){ return b.year-a.year || a.name.localeCompare(b.name); });
+      document.getElementById("partCount").textContent = items.length + " pilihan";
+      if (!items.length) {
+        document.getElementById("library").innerHTML = '<div class="empty-state">Tidak ada komponen yang cocok.<br>Coba kata kunci atau filter lain.</div>';
+        return;
+      }
+      document.getElementById("library").innerHTML = items.map(function(part) {
+        var selected = state.selection[type] === part.id;
+        var sub = part.sub ? '<div class="part-sub">' + escapeHTML(part.sub) + '</div>' : "";
+        var chips = makeSpecs(part,type).map(function(spec){ return '<span class="spec-chip">' + escapeHTML(spec) + '</span>'; }).join("");
+        var powerText = type === "psu" ? "beban" : "butuh";
+        var buttonText = selected ? "Terpasang" : "Pasang";
+        return '<article class="part-card ' + (selected ? "chosen" : "") + '" draggable="true" data-drag-id="' + escapeHTML(part.id) + '" data-drag-type="' + type + '" title="Seret komponen ke slot pada motherboard">' +
+          '<div class="part-main"><span class="part-icon">' + partIcon(type) + '</span><div class="part-intro">' +
+          '<div class="part-meta"><span class="year-tag">' + part.year + '</span><span>' + escapeHTML(part.brand) + '</span></div>' +
+          '<h3>' + escapeHTML(part.name) + '</h3><div class="part-sub">' + escapeHTML(part.meta) + '</div>' + sub + '</div></div>' +
+          '<div class="part-details">' + chips + '</div>' +
+          '<div class="part-bottom"><span class="power-tag"><b>' + (type === "psu" ? "0" : part.power) + ' W</b><span>' + powerText + (type === "psu" ? " · kapasitas " + part.capacity + " W" : " pada sistem") + '</span></span>' +
+          '<button type="button" class="button part-add ' + (selected ? "soft" : "primary") + '" data-add="' + escapeHTML(part.id) + '">' + iconMarkup(selected ? "check" : "plus", selected ? "✓" : "+") + ' ' + buttonText + '</button></div></article>';
+      }).join("");
+      refreshIcons();
+    }
+    function renderSlots() {
+      var selection = slotOrder.map(function(type) {
+        var part = getPart(type);
+        var cat = categoryFor(type);
+        var title = cat ? cat.short : type;
+        return '<div class="slot ' + (part ? "filled " : "") + (state.category === type ? "selected" : "") + '">' +
+          '<button type="button" class="slot-open" data-slot="' + type + '" aria-label="' + escapeHTML(title + (part ? ": " + part.name : ", pilih komponen")) + '">' +
+          '<span class="slot-icon">' + partIcon(type) + '</span><span class="slot-copy"><small>' + escapeHTML(title) + '</small><strong>' + escapeHTML(part ? part.name : "Pilih komponen") + '</strong></span>' +
+          '<span class="slot-watt">' + (part ? formatPower(part,type).split(" · ")[0] : "+") + '</span></button>' +
+          (part ? '<button type="button" class="slot-remove" aria-label="Lepas ' + escapeHTML(title) + '" data-remove="' + type + '"><i data-lucide="x"></i></button>' : '') + '</div>';
+      });
+      document.getElementById("slotGrid").innerHTML = selection.join("");
+      refreshIcons();
+      renderBoard();
+    }
+    function systemPower() {
+      return slotOrder.reduce(function(sum,type) {
+        var part = getPart(type);
+        return sum + (!part || type === "psu" ? 0 : Number(part.power || 0));
+      },0);
+    }
+    function compatibility() {
+      var board = getPart("board"), cpu = getPart("cpu"), ram = getPart("ram"), storage = getPart("storage"), gpu = getPart("gpu"), psu = getPart("psu");
+      var results = [];
+      if (board && cpu) {
+        var okPlatform = board.platform.indexOf(cpu.platform) !== -1 && board.socket === cpu.socket;
+        results.push({ok:okPlatform, text:okPlatform ? "Soket dan platform " + board.socket + " cocok." : cpu.name + " tidak cocok dengan soket/chipset " + board.family + "."});
+      }
+      if (board && ram) {
+        var okRam = board.ram === ram.type;
+        results.push({ok:okRam, text:okRam ? ram.type + " cocok dengan motherboard." : "Jenis RAM " + ram.type + " berbeda dari dukungan motherboard (" + board.ram + ")."});
+        var fast = ram.speed > board.maxMHz;
+        results.push({ok:!fast, warn:fast, text:fast ? "RAM " + ram.speed + " MT/s melewati angka maksimum katalog board (" + board.maxMHz + "); kecepatan dapat turun dan bergantung CPU/BIOS." : "Kecepatan RAM berada dalam batas board " + board.maxMHz + " MT/s."});
+      }
+      if (board && storage) {
+        var okNvme = board.nvmeGen > 0;
+        results.push({ok:okNvme, text:okNvme ? "Slot M.2 NVMe tersedia; SSD Gen " + storage.gen + " dapat berjalan sesuai batas platform." : "Board ini tidak mencantumkan slot M.2 NVMe dalam katalog; pilih NVMe lain atau motherboard modern."});
+        if (okNvme && storage.gen > board.nvmeGen) results.push({ok:true,warn:true,text:"NVMe Gen " + storage.gen + " akan mengikuti batas slot board sampai Gen " + board.nvmeGen + "."});
+      }
+      if (cpu && gpu) {
+        var okGraphics = gpu.mode !== "integrated" || cpu.igpu;
+        results.push({ok:okGraphics,text:okGraphics ? (gpu.mode === "integrated" ? "Grafis terintegrasi tersedia pada CPU." : "VGA diskrit tersambung melalui PCIe.") : "CPU ini tidak memiliki grafis terintegrasi; pilih VGA diskrit."});
+      }
+      if (psu) {
+        var needed = Math.ceil(systemPower() * 1.25);
+        var okPsu = psu.capacity >= needed;
+        results.push({ok:okPsu,text:okPsu ? "Kapasitas PSU " + psu.capacity + " W memenuhi cadangan 25% (saran " + needed + " W)." : "PSU " + psu.capacity + " W terlalu kecil untuk beban " + systemPower() + " W; saran minimal " + needed + " W dengan cadangan."});
+      }
+      return results;
+    }
+    function renderChecks() {
+      var total = systemPower();
+      var psu = getPart("psu");
+      var challenge = currentChallenge();
+      var percent = psu && psu.capacity ? Math.min(100, Math.round(total / psu.capacity * 100)) : 0;
+      document.getElementById("totalWatt").textContent = total;
+      document.getElementById("capacityLabel").textContent = psu ? percent + "% · " + psu.capacity + " W" : "Belum dipilih";
+      document.getElementById("capacityMeter").style.width = percent + "%";
+      document.getElementById("capacityMeter").classList.toggle("over",percent > 80);
+      document.getElementById("motherboardCanvas").classList.toggle("powered",allReady() && compatibility().every(function(item){return item.ok;}));
+      var rows = compatibility().map(function(result) {
+        var cls = result.ok ? (result.warn ? "warn" : "good") : "bad";
+        var icon = result.ok ? (result.warn ? "alert-triangle" : "check-circle") : "x-circle";
+        return '<div class="check-row ' + cls + '"><i class="check-icon" data-lucide="' + icon + '"></i><span>' + escapeHTML(result.text) + '</span></div>';
+      });
+      if (!allReady()) rows.unshift('<div class="check-row"><i class="check-icon" data-lucide="help-circle"></i><span>Lengkapi delapan slot komponen untuk menilai challenge.</span></div>');
+      if (allReady() && total > challenge.maxW) rows.push('<div class="check-row bad"><i class="check-icon" data-lucide="alert-triangle"></i><span>Beban ' + total + ' W melewati batas klien ' + challenge.maxW + ' W.</span></div>');
+      document.getElementById("checks").innerHTML = rows.join("");
+      refreshIcons();
+    }
+    function renderAll() {
+      renderHeader();
+      renderMissions();
+      renderChallenge();
+      renderCategories();
+      renderFilters();
+      renderCatalog();
+      renderSlots();
+      renderChecks();
+    }
+    function renderBoard() {
+      var board = getPart("board");
+      var boardButton = document.querySelector(".board-target[data-slot='board']");
+      document.getElementById("boardModel").textContent = board ? board.brand + " · " + board.name + " · " + board.family : "Papan induk belum dipasang";
+      boardButton.classList.toggle("occupied",!!board);
+      boardButton.innerHTML = board ? partIcon("board") + '<span>' + escapeHTML(board.name) + '</span>' : '<i data-lucide="plus"></i><span>Pilih motherboard</span>';
+      var labels = {
+        cpu: board ? "Masukkan prosesor" : "Pasang motherboard dulu",
+        ram: board ? "Pasang memori" : "Pasang motherboard dulu",
+        storage: board ? "Pasang SSD NVMe" : "Pasang motherboard dulu",
+        gpu: board ? "Masukkan VGA / pilih iGPU" : "Pasang motherboard dulu",
+        psu: "Sambungkan daya",
+        keyboard: "Hubungkan keyboard",
+        mouse: "Hubungkan mouse"
+      };
+      ["cpu","ram","storage","gpu","psu","keyboard","mouse"].forEach(function(type) {
+        var part = getPart(type);
+        var nodes = document.querySelectorAll('[data-zone-name="' + type + '"]');
+        nodes.forEach(function(node) {
+          var name = part ? part.name : labels[type];
+          if (type === "psu" && part) name = part.brand + " · " + part.capacity + " W";
+          if (type === "ram" && part) name = part.name + " · " + part.speed + " MT/s";
+          node.textContent = name;
+        });
+        var power = document.querySelector('[data-zone-power="' + type + '"]');
+        if (power) {
+          var wattText = !part ? "" : (type === "gpu" && part.mode === "integrated" ? "0 W" : part.power + " W");
+          power.textContent = wattText;
+        }
+        document.querySelectorAll('.board-zone[data-slot="' + type + '"], .bench-port[data-slot="' + type + '"]').forEach(function(zone) {
+          zone.classList.toggle("occupied",!!part);
+          zone.title = part ? part.name + " · " + formatPower(part,type) : labels[type];
+        });
+      });
+      refreshIcons();
+    }
+    function selectBuildSlot(type) {
+      state.category = type;
+      state.query = "";
+      state.year = "all";
+      state.brand = "all";
+      renderCategories();
+      renderFilters();
+      renderCatalog();
+      renderSlots();
+      document.getElementById("library").scrollIntoView({behavior:"smooth",block:"start"});
+    }
+    function addPart(id, typeOverride) {
+      var type = typeOverride || state.category;
+      var part = (catalog[type] || []).find(function(item){ return item.id === id; });
+      if (!part) return;
+      state.category = type;
+      state.selection[type] = id;
+      state.lastCheck = null;
+      document.getElementById("feedback").classList.remove("show");
+      renderCatalog();
+      renderSlots();
+      renderChecks();
+      showToast(part.name + " dipasang di slot " + slotLabels[type] + ".");
+    }
+    function isBuildCompatible() {
+      var results = compatibility();
+      return allReady() && results.every(function(result){ return result.ok; });
+    }
+    function challengeRequirements() {
+      var challenge = currentChallenge();
+      var cpu = getPart("cpu"), ram = getPart("ram"), gpu = getPart("gpu"), storage = getPart("storage"), psu = getPart("psu");
+      var conditions = [];
+      conditions.push({ok:cpu && cpu.tier >= challenge.cpu, text:"Performa CPU tier " + challenge.cpu + "+"});
+      var ramTypeOkay = ram && (ram.type === "DDR5" || (challenge.ramType === "DDR4" && ram.type === "DDR4") || (challenge.ramType === "DDR3" && (ram.type === "DDR3" || ram.type === "DDR4" || ram.type === "DDR5")));
+      conditions.push({ok:ram && ram.capacity >= challenge.ram && ramTypeOkay, text:challenge.ram + " GB " + challenge.ramType + " atau lebih baru"});
+      var gpuModeOkay = gpu && (challenge.gpuMode === "any" || gpu.mode === challenge.gpuMode);
+      conditions.push({ok:gpuModeOkay && gpu && gpu.tier >= challenge.gpu, text:challenge.gpuMode === "integrated" ? "Grafis terintegrasi, tanpa VGA diskrit" : (challenge.gpuMode === "discrete" ? "VGA diskrit tier " + challenge.gpu + "+" : "Grafis yang sesuai beban kerja")});
+      conditions.push({ok:storage && storage.capacity >= challenge.storage, text:"NVMe minimal " + formatCapacity(challenge.storage)});
+      conditions.push({ok:systemPower() <= challenge.maxW, text:"Konsumsi maksimal " + challenge.maxW + " W"});
+      conditions.push({ok:psu && psu.capacity >= challenge.psuMin, text:"PSU berkapasitas " + challenge.psuMin + " W atau lebih"});
+      return conditions;
+    }
+    function checkBuild() {
+      if (!allReady()) {
+        var missing = slotOrder.filter(function(type){ return !getPart(type); }).map(function(type){ return slotLabels[type]; });
+        showToast("Slot belum lengkap: " + missing.join(", ") + ".");
+        document.getElementById("feedback").textContent = "Lengkapi semua 8 jenis komponen terlebih dahulu. Untuk komputer kantor, gunakan opsi grafis terintegrasi pada slot VGA.";
+        document.getElementById("feedback").classList.add("show");
+        return;
+      }
+      var fit = compatibility();
+      var goals = challengeRequirements();
+      var compatible = fit.every(function(item){ return item.ok; });
+      var passed = compatible && goals.every(function(item){ return item.ok; });
+      var box = document.getElementById("feedback");
+      box.classList.add("show");
+      if (passed) {
+        var challenge = currentChallenge();
+        var previouslyDone = state.done.indexOf(challenge.id) !== -1;
+        var total = systemPower();
+        var headroom = getPart("psu").capacity - total;
+        var bonus = Math.max(0, Math.min(40, Math.floor(headroom / Math.max(1, total) * 10)));
+        var points = challenge.reward + bonus;
+        if (!previouslyDone) {
+          state.score += points;
+          state.done.push(challenge.id);
+          persist();
+          renderHeader();
+          renderMissions();
+        } else {
+          points = 0;
+        }
+        var passedText = previouslyDone ? "Challenge ini sudah pernah diselesaikan. Rakitan tetap sesuai." : "Mantap! Rakitan lolos kompatibilitas dan memenuhi kebutuhan klien.";
+        box.innerHTML = '<strong>' + escapeHTML(passedText) + '</strong><br>' + (previouslyDone ? "Skor tersimpan tidak berubah." : "+" + points + " poin · " + challenge.reward + " poin dasar + " + bonus + " bonus ruang daya.");
+        box.style.background = "#effbf6";
+        box.style.borderColor = "#d5eee4";
+        box.style.color = "#116b54";
+        renderChallenge();
+        if (!previouslyDone) showToast("Challenge selesai! +" + points + " poin.");
+      } else {
+        var failures = fit.filter(function(item){return !item.ok;}).map(function(item){ return item.text; }).concat(goals.filter(function(item){return !item.ok;}).map(function(item){ return "Belum terpenuhi: " + item.text + "."; }));
+        box.innerHTML = "<strong>Rakitan belum memenuhi misi.</strong><br>" + failures.map(escapeHTML).join("<br>");
+        box.style.background = "#fff7f4";
+        box.style.borderColor = "#f3ddd6";
+        box.style.color = "#9f4440";
+        showToast("Masih ada spesifikasi atau kompatibilitas yang perlu diperbaiki.");
+      }
+    }
+    function suggestBuild() {
+      var challenge = currentChallenge();
+      var boardList = catalog.board.filter(function(item){ return item.ram === challenge.ramType || (challenge.ramType === "DDR3" && item.ram === "DDR4"); });
+      var board = boardList.slice().sort(function(a,b){ return b.year-a.year; })[0];
+      var cpus = catalog.cpu.filter(function(item){ return board && board.platform.indexOf(item.platform) !== -1 && item.socket === board.socket && item.tier >= challenge.cpu && (challenge.gpuMode !== "integrated" || item.igpu); });
+      var cpu = cpus.slice().sort(function(a,b){ return a.power-b.power || a.year-b.year; })[0];
+      var memories = catalog.ram.filter(function(item){ return board && item.type === board.ram && item.capacity >= challenge.ram && item.speed <= board.maxMHz; });
+      var ram = memories.slice().sort(function(a,b){ return a.power-b.power || a.capacity-b.capacity; })[0];
+      var drives = catalog.storage.filter(function(item){ return item.capacity >= challenge.storage && board && item.gen <= board.nvmeGen; });
+      var drive = drives.slice().sort(function(a,b){ return a.power-b.power || a.year-b.year; })[0];
+      var gpus = catalog.gpu.filter(function(item){ return (challenge.gpuMode === "any" || item.mode === challenge.gpuMode) && item.tier >= challenge.gpu && (item.mode !== "integrated" || (cpu && cpu.igpu)); });
+      var gpu = gpus.slice().sort(function(a,b){ return a.power-b.power || a.tier-b.tier; })[0];
+      var keyboard = catalog.keyboard.slice().sort(function(a,b){ return a.power-b.power; })[0];
+      var mouse = catalog.mouse.slice().sort(function(a,b){ return a.power-b.power; })[0];
+      var needed = (cpu ? cpu.power : 0) + (board ? board.power : 0) + (ram ? ram.power : 0) + (drive ? drive.power : 0) + (gpu ? gpu.power : 0) + (keyboard ? keyboard.power : 0) + (mouse ? mouse.power : 0);
+      var psu = catalog.psu.filter(function(item){ return item.capacity >= Math.max(challenge.psuMin, needed*1.25); }).sort(function(a,b){ return a.capacity-b.capacity; })[0];
+      if (!board || !cpu || !ram || !drive || !gpu || !keyboard || !mouse || !psu) {
+        showToast("Belum ada kombinasi saran lengkap. Pilih komponen manual dan cek batas challenge.");
+        return;
+      }
+      state.selection = { board:board.id, cpu:cpu.id, ram:ram.id, storage:drive.id, gpu:gpu.id, psu:psu.id, keyboard:keyboard.id, mouse:mouse.id };
+      state.lastCheck = null;
+      document.getElementById("feedback").classList.remove("show");
+      renderAll();
+      showToast("Saran rakitan ditambahkan. Periksa hasilnya untuk mengklaim skor.");
+    }
+    document.getElementById("missionList").addEventListener("click",function(event){
+      var button = event.target.closest("[data-mission]");
+      if (!button) return;
+      state.challenge = Number(button.getAttribute("data-mission"));
+      state.lastCheck = null;
+      document.getElementById("feedback").classList.remove("show");
+      renderAll();
+    });
+    document.getElementById("categoryTabs").addEventListener("click",function(event){
+      var button = event.target.closest("[data-category]");
+      if (!button) return;
+      state.category = button.getAttribute("data-category");
+      state.query = "";
+      state.year = "all";
+      state.brand = "all";
+      renderCategories();
+      renderFilters();
+      renderCatalog();
+      renderSlots();
+    });
+    document.getElementById("library").addEventListener("click",function(event){
+      var button = event.target.closest("[data-add]");
+      if (button) addPart(button.getAttribute("data-add"));
+    });
+    document.getElementById("library").addEventListener("dragstart",function(event){
+      var card = event.target.closest("[data-drag-id]");
+      if (!card || !event.dataTransfer) return;
+      event.dataTransfer.setData("text/plain",card.getAttribute("data-drag-id"));
+      event.dataTransfer.setData("application/x-rakit-category",card.getAttribute("data-drag-type"));
+      event.dataTransfer.effectAllowed = "copy";
+    });
+    document.getElementById("boardWorkbench").addEventListener("click",function(event){
+      var zone = event.target.closest("[data-slot]");
+      if (zone) selectBuildSlot(zone.getAttribute("data-slot"));
+    });
+    document.getElementById("boardWorkbench").addEventListener("dragover",function(event){
+      var zone = event.target.closest("[data-slot]");
+      if (!zone || !event.dataTransfer) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      zone.classList.add("drag-target");
+    });
+    document.getElementById("boardWorkbench").addEventListener("dragleave",function(event){
+      var zone = event.target.closest("[data-slot]");
+      if (zone && (!event.relatedTarget || !zone.contains(event.relatedTarget))) zone.classList.remove("drag-target");
+    });
+    document.getElementById("boardWorkbench").addEventListener("drop",function(event){
+      var zone = event.target.closest("[data-slot]");
+      if (!zone) return;
+      event.preventDefault();
+      zone.classList.remove("drag-target");
+      var itemId = event.dataTransfer.getData("text/plain");
+      var itemType = event.dataTransfer.getData("application/x-rakit-category");
+      var targetType = zone.getAttribute("data-slot");
+      if (itemType !== targetType) {
+        showToast("Komponen " + slotLabels[itemType] + " harus masuk ke slot " + slotLabels[itemType] + ", bukan " + slotLabels[targetType] + ".");
+        return;
+      }
+      addPart(itemId,itemType);
+    });
+    document.getElementById("slotGrid").addEventListener("click",function(event){
+      var remove = event.target.closest("[data-remove]");
+      if (remove) {
+        event.stopPropagation();
+        var type = remove.getAttribute("data-remove");
+        delete state.selection[type];
+        document.getElementById("feedback").classList.remove("show");
+        renderCatalog();
+        renderSlots();
+        renderChecks();
+        return;
+      }
+      var slot = event.target.closest("[data-slot]");
+      if (slot) selectBuildSlot(slot.getAttribute("data-slot"));
+    });
+    document.getElementById("searchFilter").addEventListener("input",function(event){ state.query = event.target.value; renderCatalog(); });
+    document.getElementById("yearFilter").addEventListener("change",function(event){ state.year = event.target.value; renderCatalog(); });
+    document.getElementById("brandFilter").addEventListener("change",function(event){ state.brand = event.target.value; renderCatalog(); });
+    document.getElementById("checkBuild").addEventListener("click",checkBuild);
+    document.getElementById("clearBuild").addEventListener("click",function(){
+      state.selection = {};
+      document.getElementById("feedback").classList.remove("show");
+      renderCatalog(); renderSlots(); renderChecks();
+      showToast("Meja rakit dikosongkan.");
+    });
+    document.getElementById("nextMission").addEventListener("click",function(){
+      var next = challenges.findIndex(function(c,index){ return index > state.challenge && state.done.indexOf(c.id) === -1; });
+      if (next === -1) next = challenges.findIndex(function(c){ return state.done.indexOf(c.id) === -1; });
+      if (next === -1) { showToast("Semua challenge selesai. Skor akhir tersimpan di browser ini."); return; }
+      state.challenge = next;
+      document.getElementById("feedback").classList.remove("show");
+      renderAll();
+    });
+    document.getElementById("clientCard").addEventListener("click",function(event){
+      if (event.target.closest("#suggestBuild")) suggestBuild();
+    });
+    renderAll();
+    if (!window.lucide) window.addEventListener("load",refreshIcons);
+  </script>
+</body>
+</html>
